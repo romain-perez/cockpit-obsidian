@@ -152,6 +152,30 @@ export async function addEvent(raw: Record<string, unknown>): Promise<AddResult>
   return value;
 }
 
+export type UpdateResult = AddResult | { ok: false; error: string; notFound: true };
+
+/** Replaces a row (edit in the calendar). The row id changes if the date, start, type, title or place change. */
+export async function updateEvent(id: unknown, raw: Record<string, unknown>): Promise<UpdateResult> {
+  if (typeof id !== "string") return { ok: false, error: "Événement introuvable.", notFound: true };
+  const row = normalizeRow(raw);
+  const error = validateRow(row);
+  if (error) return { ok: false, error };
+  const newId = rowId(row);
+  const { value } = await updateFile<UpdateResult>(
+    agendaPath(),
+    (current) => {
+      const rows = current === null ? [] : parseAgenda(current);
+      if (!rows.some((r) => r.id === id)) return { content: null, value: { ok: false, error: "Événement introuvable.", notFound: true } };
+      if (newId !== id && rows.some((r) => r.id === newId))
+        return { content: null, value: { ok: false, error: "Cet événement existe déjà.", duplicate: true } };
+      const kept = rows.map((r) => (r.id === id ? row : stripComputed(r)));
+      return { content: renderAgenda(current, kept), value: { ok: true, id: newId } };
+    },
+    { validate: checkTable },
+  );
+  return value;
+}
+
 /** Removes a row. Returns false if the id is unknown. */
 export async function removeEvent(id: unknown): Promise<boolean> {
   if (typeof id !== "string") return false;

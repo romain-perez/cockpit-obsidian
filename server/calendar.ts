@@ -30,6 +30,7 @@ export function buildCalendar(from: string, to: string): CalendarData {
           color: EXAM_COLOR,
           link: m.link,
           agendaId: null,
+          event: null,
         });
       }
   for (const e of agenda.filter((x) => x.type === "exam"))
@@ -40,6 +41,7 @@ export function buildCalendar(from: string, to: string): CalendarData {
       color: EXAM_COLOR,
       link: byCode.get(e.module)?.link ?? null,
       agendaId: e.id,
+      event: e,
     });
 
   const days: CalendarDay[] = Array.from({ length: dayCount }, (_, i) => {

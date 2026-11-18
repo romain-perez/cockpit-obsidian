@@ -1873,6 +1873,12 @@ code {
   display: grid;
   gap: 6px;
 }
+.cal-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
 .cal-list li {
   display: grid;
   grid-template-columns: 82px 1fr auto;

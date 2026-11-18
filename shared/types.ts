@@ -266,7 +266,8 @@ export interface CalendarExam {
   start: string;
   color: string;
   link: string | null;
-  agendaId: string | null; // set when the exam comes from the agenda (can be removed from the Cockpit)
+  agendaId: string | null; // set when the exam comes from the agenda (can be edited or removed from the Cockpit)
+  event: AgendaEvent | null; // the agenda row itself, for the edit form
 }
 
 export interface CalendarDay {

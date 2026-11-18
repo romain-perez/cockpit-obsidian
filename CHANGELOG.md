@@ -4,6 +4,8 @@ Les versions suivent [SemVer](https://semver.org/lang/fr/) : `Y` pour une nouvel
 
 ## [Non publié]
 
+- Ajouté : bouton « Modifier » dans le calendrier pour les rendez-vous et examens de l'agenda (route `POST /api/agenda/update`) ; un événement créé sur le téléphone et modifié dans le Cockpit est ensuite géré par le Cockpit (l'original est retiré de Google à la synchro suivante).
+
 - Corrigé : la liste des résultats de la recherche défile (molette et flèches ↑ ↓) au lieu de déborder.
 
 - Dock : nom de la vue dans une bulle au survol (au lieu de l'infobulle du navigateur), icônes qui grossissent autour de la souris, une couleur pastel par rôle d'icône (la même dans tous les espaces), point sous la vue active.
