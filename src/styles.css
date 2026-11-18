@@ -16,6 +16,15 @@
   --font-text: "Manrope Variable", "Segoe UI", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
   --ease: cubic-bezier(0.22, 0.8, 0.24, 1);
+  /* dock icon colors by role (same pastel lightness) */
+  --dock-accent: #f2b58c;
+  --dock-time: #8dbef0;
+  --dock-action: #efa3b4;
+  --dock-reading: #b5a4f0;
+  --dock-measure: #9edbb0;
+  --dock-cards: #eed68a;
+  --dock-share: #86d3d0;
+  --dock-neutral: #94aca8;
 }
 * {
   box-sizing: border-box;
@@ -473,45 +482,119 @@ code {
   bottom: max(20px, env(safe-area-inset-bottom, 0px));
   transform: translateX(-50%);
   display: flex;
+  align-items: flex-end;
   gap: 8px;
   padding: 10px;
   border-radius: 22px;
-  background: rgba(14, 30, 33, 0.78);
-  border: 1px solid var(--line);
-  backdrop-filter: blur(12px);
+  background: rgba(14, 30, 33, 0.62);
+  border: 1px solid rgba(234, 241, 238, 0.14);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 18px 40px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
   z-index: 10;
 }
-.dock button {
+/* One dock item: --c = color of its role, --s = magnification set by the pointer */
+.dock-item {
+  --s: 1;
+  --c: var(--dock-accent);
   position: relative;
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
+  width: calc(48px * var(--s));
+  height: calc(48px * var(--s));
+  border-radius: calc(14px * var(--s));
   display: grid;
   place-items: center;
-  color: var(--peach);
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--line);
+  padding: 0;
+  color: var(--c);
+  background: color-mix(in srgb, var(--c) 11%, transparent);
+  border: 1px solid color-mix(in srgb, var(--c) 26%, transparent);
   transition:
-    background 0.2s,
-    transform 0.25s var(--ease);
+    width 0.16s var(--ease),
+    height 0.16s var(--ease),
+    border-radius 0.16s var(--ease),
+    background 0.2s;
 }
-.dock button:hover {
-  transform: translateY(-3px);
-  background: rgba(255, 255, 255, 0.07);
+.dock-item svg {
+  width: calc(20px * var(--s));
+  height: calc(20px * var(--s));
+  transition:
+    width 0.16s var(--ease),
+    height 0.16s var(--ease);
 }
-.dock button.on {
-  background: rgba(242, 181, 140, 0.16);
-  border-color: rgba(242, 181, 140, 0.4);
+.dock-item:hover,
+.dock-item:focus-visible {
+  background: color-mix(in srgb, var(--c) 20%, transparent);
 }
-.dock button.on::after {
+.dock-item:focus-visible {
+  outline: 2px solid var(--c);
+  outline-offset: 2px;
+}
+.dock-item.on {
+  background: color-mix(in srgb, var(--c) 26%, transparent);
+  border-color: color-mix(in srgb, var(--c) 55%, transparent);
+}
+.dock-item.on::after {
   content: "";
   position: absolute;
   bottom: -9px;
-  left: 12px;
-  right: 12px;
-  height: 2px;
-  border-radius: 2px;
-  background: var(--peach);
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  margin-left: -2.5px;
+  border-radius: 50%;
+  background: var(--c);
+}
+/* Name bubble above the hovered item */
+.dock-label {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 10px);
+  transform: translate(-50%, 4px);
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  white-space: nowrap;
+  pointer-events: none;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font: 600 12px var(--font-text);
+  color: var(--text);
+  background: rgba(14, 30, 33, 0.92);
+  border: 1px solid rgba(234, 241, 238, 0.16);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  transition:
+    opacity 0.12s,
+    transform 0.12s var(--ease);
+}
+.dock-label::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  margin-left: -5px;
+  border: 5px solid transparent;
+  border-top-color: rgba(14, 30, 33, 0.92);
+}
+.dock-label kbd {
+  font: 600 10px var(--font-mono);
+  padding: 0 5px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+.dock-item:hover .dock-label,
+.dock-item:focus-visible .dock-label {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .dock-item,
+  .dock-item svg,
+  .dock-label {
+    transition: none;
+  }
 }
 .badge {
   position: absolute;

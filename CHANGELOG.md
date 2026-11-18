@@ -4,6 +4,8 @@ Les versions suivent [SemVer](https://semver.org/lang/fr/) : `Y` pour une nouvel
 
 ## [Non publié]
 
+- Dock : nom de la vue dans une bulle au survol (au lieu de l'infobulle du navigateur), icônes qui grossissent autour de la souris, une couleur pastel par rôle d'icône (la même dans tous les espaces), point sous la vue active.
+
 ## [1.1.0] - 2026-11-18
 
 - Ajouté : bouton « Ouvrir dans Google Drive » dans la vue Drive, vers l'adresse de la nouvelle option `drive.webUrl` (facultative).
