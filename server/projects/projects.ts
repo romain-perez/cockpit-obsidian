@@ -44,9 +44,19 @@ export function discoveredFolders(): string[] {
 }
 
 /** "[[Note name]]" → obsidian:// link of the indexed note. */
-function resolveWikiLink(value: string | undefined, index: IndexedNote[]): string | null {
-  const target = wikiLinkTarget(value);
-  return target ? (index.find((n) => n.path.split("/").at(-1)!.replace(/\.md$/, "") === target || n.title === target)?.link ?? null) : null;
+/**
+ * Link of the note targeted by a wiki link, resolved like Obsidian: by file name first ("[[Cockpit]]" → Cockpit.md),
+ * then by path ("[[Folder/Cockpit]]"), and only then by displayed title (two notes can share the same title).
+ */
+export function resolveWikiLink(value: string | undefined, index: IndexedNote[]): string | null {
+  const target = wikiLinkTarget(value)?.replace(/\.md$/, "");
+  if (!target) return null;
+  const fileName = (note: IndexedNote) => note.path.split("/").at(-1)!.replace(/\.md$/, "");
+  const note =
+    index.find((n) => fileName(n) === target) ??
+    index.find((n) => n.path === `${target}.md` || n.path.endsWith(`/${target}.md`)) ??
+    index.find((n) => n.title === target);
+  return note?.link ?? null;
 }
 
 export async function buildProjects(): Promise<ProjectsData> {
