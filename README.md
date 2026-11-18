@@ -54,7 +54,7 @@ Tout se règle dans **`cockpit.config.json`** (ignoré par git, commentaires `//
 | `vault`    | chemin et nom du coffre, **dossiers exclus**, emplacement des notes (agenda, notes d'examen, journal, fiches de projets)  |
 | `school`   | conventions des notes de modules, couleurs, cours sans module, dossier des PDF téléchargés, calcul de la note CFC (`cfc`) |
 | `schedule` | horaire de cours : adresse d'un calendrier `.ics`, cache, fichier de repli, règles titre → code, cours masqués            |
-| `projects` | dossiers où chercher du code, propriétés des fiches de projets                                                            |
+| `projects` | dossiers où chercher du code (et leur groupe), propriétés des fiches de projets                                           |
 | `drive`    | script de partage et adresse web du dossier partagé (facultatif)                                                          |
 | `desktop`  | ouverture d'Obsidian / VS Code et bascule de fenêtre sous Hyprland (facultatif)                                           |
 | `google`   | synchro Google Agenda (facultatif)                                                                                        |

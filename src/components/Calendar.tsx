@@ -1,6 +1,6 @@
-// Apple-style calendar: month grid, day detail, adding appointments and exams (written to the agenda note).
+// Calendar: month grid, day detail, adding and editing appointments and exams (written to the agenda note).
 import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from "react";
-import type { AgendaEventType, CalendarData, CalendarDay } from "../../shared/types.ts";
+import type { AgendaEvent, AgendaEventType, CalendarData, CalendarDay } from "../../shared/types.ts";
 import { forcedDate, post } from "../api.ts";
 import { useConfig } from "../config.tsx";
 import { MONTHS, parseDate, toIsoDate, weekdayName } from "../utils.ts";
@@ -53,6 +53,7 @@ export function CalendarView({ onChange }: { onChange?: () => void }) {
   const [form, setForm] = useState<EventForm>(emptyForm(today));
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [adding, setAdding] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null); // null: new event
 
   const start = gridStart(cursor.year, cursor.month);
   const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + GRID_DAYS - 1);
@@ -85,18 +86,30 @@ export function CalendarView({ onChange }: { onChange?: () => void }) {
     setMessage(null);
   };
   const startAdding = () => {
+    setEditingId(null);
+    setForm(emptyForm(selected));
     setAdding(true);
-    setForm((f) => ({ ...f, date: selected }));
     setMessage(null);
+  };
+  const startEditing = (event: AgendaEvent) => {
+    const { date, start, end, type, title, place, module, note } = event;
+    setEditingId(event.id);
+    setForm({ date, start, end, type, title, place, module, note });
+    setAdding(true);
+    setMessage(null);
+  };
+  const stopEditing = () => {
+    setAdding(false);
+    setEditingId(null);
   };
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    const response = await post("/api/agenda", form);
+    const response = editingId ? await post("/api/agenda/update", { id: editingId, ...form }) : await post("/api/agenda", form);
     if (response.ok) {
-      setMessage({ ok: true, text: "Ajouté dans Obsidian (note Agenda)." });
+      setMessage({ ok: true, text: editingId ? "Modifié dans Obsidian (note Agenda)." : "Ajouté dans Obsidian (note Agenda)." });
       setForm(emptyForm(form.date));
-      setAdding(false);
+      stopEditing();
       setSelected(form.date);
       await load();
       onChange?.();
@@ -164,6 +177,8 @@ export function CalendarView({ onChange }: { onChange?: () => void }) {
                 onClick={() => select(date)}
                 onDoubleClick={() => {
                   select(date);
+                  setEditingId(null);
+                  setForm(emptyForm(date));
                   setAdding(true);
                 }}
                 aria-label={`${d.getDate()} ${MONTHS[d.getMonth()]}${items.length ? `, ${items.length} élément(s)` : ""}`}
@@ -286,11 +301,11 @@ export function CalendarView({ onChange }: { onChange?: () => void }) {
               />
             </label>
             <div className="row buttons">
-              <button type="button" className="button" onClick={() => setAdding(false)}>
+              <button type="button" className="button" onClick={stopEditing}>
                 Annuler
               </button>
               <button type="submit" className="button peach">
-                Ajouter dans Obsidian
+                {editingId ? "Enregistrer les changements" : "Ajouter dans Obsidian"}
               </button>
             </div>
             <p className="muted small">
@@ -317,11 +332,7 @@ export function CalendarView({ onChange }: { onChange?: () => void }) {
                       )}
                       <small>examen</small>
                     </div>
-                    {x.agendaId && (
-                      <button className="button small" onClick={() => remove(x.agendaId!)} title="Retirer de l'agenda">
-                        Retirer
-                      </button>
-                    )}
+                    {x.event && <EventActions event={x.event} onEdit={startEditing} onRemove={remove} />}
                   </li>
                 ))}
                 {selectedDay.events.map((x) => (
@@ -331,9 +342,7 @@ export function CalendarView({ onChange }: { onChange?: () => void }) {
                       <b>{x.title}</b>
                       <small>{[x.place, x.note].filter(Boolean).join(" · ") || "rendez-vous"}</small>
                     </div>
-                    <button className="button small" onClick={() => remove(x.id)} title="Retirer de l'agenda">
-                      Retirer
-                    </button>
+                    <EventActions event={x} onEdit={startEditing} onRemove={remove} />
                   </li>
                 ))}
                 {selectedDay.courses.map((x) => (
@@ -368,5 +377,27 @@ export function CalendarView({ onChange }: { onChange?: () => void }) {
         )}
       </aside>
     </section>
+  );
+}
+
+/** Edit and remove buttons of an agenda row. */
+function EventActions({
+  event,
+  onEdit,
+  onRemove,
+}: {
+  event: AgendaEvent;
+  onEdit: (event: AgendaEvent) => void;
+  onRemove: (id: string) => void;
+}) {
+  return (
+    <span className="cal-actions">
+      <button className="button small" onClick={() => onEdit(event)}>
+        Modifier
+      </button>
+      <button className="button small" onClick={() => onRemove(event.id)}>
+        Retirer
+      </button>
+    </span>
   );
 }

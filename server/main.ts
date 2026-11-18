@@ -11,6 +11,7 @@
 //   GET  /api/drive                     Drive status + upload in progress (live output)
 //   GET  /api/google                    Google sync status; /connect → OAuth consent; /callback ← Google's answer
 //   POST /api/agenda                    { date, start, end, type: "appointment"|"exam", title, place, module, note }
+//   POST /api/agenda/update             { id, date, start, end, type, title, place, module, note }
 //   POST /api/agenda/remove             { id }
 //   POST /api/open-note                 { link: "obsidian://open?vault=…" } → opens the note and shows Obsidian
 //   POST /api/open-folder               { path: "~/github/portfolio" } → opens a known code folder in the editor
@@ -35,7 +36,8 @@ try {
   process.exit(1);
 }
 
-const { addEvent, removeEvent } = await import("./agenda.ts");
+const { addEvent, removeEvent, updateEvent } = await import("./agenda.ts");
+const { releasePhoneRow } = await import("./google/files.ts");
 const { buildCalendar } = await import("./calendar.ts");
 const { openInEditor, openInObsidian } = await import("./desktop.ts");
 const { checkDrive, driveStatus, startUpload, uploadStatus } = await import("./drive.ts");
@@ -186,6 +188,15 @@ async function handlePost(url: URL, req: IncomingMessage, res: ServerResponse): 
       if (!result.ok) throw new HttpError(result.duplicate ? 409 : 400, result.error);
       syncGoogleSoon();
       sendText(res, 201);
+      return true;
+    }
+    case "/api/agenda/update": {
+      const { id, ...fields } = await readBody(req);
+      const result = await updateEvent(id, fields);
+      if (!result.ok) throw new HttpError("notFound" in result ? 404 : result.duplicate ? 409 : 400, result.error);
+      if (config().google.enabled) await releasePhoneRow(String(id));
+      syncGoogleSoon();
+      sendText(res, 200);
       return true;
     }
     case "/api/agenda/remove": {

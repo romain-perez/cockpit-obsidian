@@ -67,7 +67,8 @@
     //   espace: projets · dossier: ~/github/mon-projet · prochaine-etape: … · kb: "[[Ma note]]" · depot: https://github.com/…
     "codeRoots": [
       // où chercher les dossiers de code sans fiche (profondeur 1 ou 2)
-      { "path": "~/github", "depth": 1 }
+      { "path": "~/projects/ecole", "depth": 2, "group": "École" }, // group : titre de la liste (par défaut : nom du dossier)
+      { "path": "~/github", "depth": 1, "group": "GitHub" }
     ]
   },
 

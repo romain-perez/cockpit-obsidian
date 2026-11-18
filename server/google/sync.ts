@@ -10,7 +10,16 @@ import { readAgenda, removeEvent, upsertEvent } from "../agenda.ts";
 import { readModules } from "../school/modules.ts";
 import { blocksOfDay, readPeriods } from "../school/schedule.ts";
 import { getAccessToken } from "./auth.ts";
-import { googleFile, hasClient, isConnected, readCalendarIds, readPhoneEvents, type CalendarKey, type PhoneEvents } from "./files.ts";
+import {
+  googleFile,
+  hasClient,
+  isConnected,
+  readCalendarIds,
+  readPhoneEvents,
+  RELEASED_PREFIX,
+  type CalendarKey,
+  type PhoneEvents,
+} from "./files.ts";
 import type { GoogleStatus } from "../../shared/types.ts";
 
 const API = "https://www.googleapis.com/calendar/v3";
@@ -232,6 +241,15 @@ async function importFromPhone(calendar: string, from: string): Promise<{ added:
   const rows = new Map(readAgenda().map((e) => [e.id, e]));
   for (const [id, event] of phone) {
     const link = known[id];
+    if (link?.row.startsWith(RELEASED_PREFIX)) {
+      // edited in the Cockpit: the phone event gives way to the Cockpit's version
+      const r = await api("DELETE", `/calendars/${encodeURIComponent(calendar)}/events/${id}`);
+      if (succeeded(r.status) || r.status === 410) {
+        delete known[id];
+        tally.removed++;
+      }
+      continue;
+    }
     const row = phoneEventToRow(event);
     if (!row) continue;
     if (!link) {

@@ -166,6 +166,7 @@ export interface GitStatus {
   unpushed: number | null; // null: no upstream branch
   remote: string | null;
   commitsPerDay: Record<string, number>;
+  recentCommits: { at: string; message: string }[]; // last commits of the 90 days, without merges (at = ISO date-time)
 }
 
 export interface CodeFolder {
@@ -173,6 +174,12 @@ export interface CodeFolder {
   name: string;
   git: GitStatus | null;
   modifiedAt: string;
+  group: string | null; // folders without a project sheet: group of their code root ("École", "Privé"…)
+}
+
+export interface CodeFolderGroup {
+  name: string;
+  folders: CodeFolder[];
 }
 
 export interface Project {
@@ -191,6 +198,7 @@ export interface Project {
 export interface ProjectsData {
   projects: Project[];
   otherFolders: CodeFolder[];
+  otherFolderGroups: CodeFolderGroup[]; // same folders, by code root, in the order of the configuration
 }
 
 // ---------------------------------------------------------------- vault, personal, journal, search
@@ -228,9 +236,26 @@ export interface ActivityDay {
   commits: number;
 }
 
+/** Commits of one project (or code folder without a sheet) over the 90 days. */
+export interface ProjectActivity {
+  name: string;
+  color: string;
+  commits: number;
+  link: string | null; // project sheet
+}
+
+export interface CommitEntry {
+  at: string; // ISO date-time
+  project: string;
+  color: string;
+  message: string;
+}
+
 export interface ActivityData {
   journal: JournalEntry[];
   days: ActivityDay[];
+  projects: ProjectActivity[]; // most active first, only those with commits
+  commits: CommitEntry[]; // most recent first
 }
 
 export type VaultArea = "school" | "assistant" | "personal" | "other";
@@ -266,7 +291,8 @@ export interface CalendarExam {
   start: string;
   color: string;
   link: string | null;
-  agendaId: string | null; // set when the exam comes from the agenda (can be removed from the Cockpit)
+  agendaId: string | null; // set when the exam comes from the agenda (can be edited or removed from the Cockpit)
+  event: AgendaEvent | null; // the agenda row itself, for the edit form
 }
 
 export interface CalendarDay {

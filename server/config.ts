@@ -26,6 +26,7 @@ export const toTilde = (path: string): string => (path.startsWith(HOME) ? `~${pa
 export interface CodeRoot {
   path: string;
   depth: 1 | 2;
+  group: string; // shown as a heading in "Autres dossiers de code" (default: folder name)
 }
 export interface CodeRule {
   pattern: RegExp;
@@ -354,7 +355,12 @@ export function buildConfig(
   // projects
   const roots = (Array.isArray(merged.projects.codeRoots) ? merged.projects.codeRoots : []).map((r, i) => {
     if (r?.depth !== 1 && r?.depth !== 2) problems.push(`projects.codeRoots[${i}].depth : 1 ou 2 attendu`);
-    return { path: expandHome(text(`projects.codeRoots[${i}].path`, r?.path)), depth: r?.depth === 2 ? 2 : 1 } as CodeRoot;
+    const path = expandHome(text(`projects.codeRoots[${i}].path`, r?.path));
+    return {
+      path,
+      depth: r?.depth === 2 ? 2 : 1,
+      group: typeof r?.group === "string" && r.group.trim() ? r.group.trim() : basename(path),
+    } as CodeRoot;
   });
 
   // optional features: switched off with a warning when they cannot work

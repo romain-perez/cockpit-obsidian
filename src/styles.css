@@ -1532,33 +1532,127 @@ code {
   color: var(--peach);
 }
 
-.heatmaps {
+/* Activity dashboard */
+.activity {
   display: grid;
-  gap: 22px;
+  gap: 20px;
 }
-.heatmap h3 {
+.activity h3 {
   margin: 0 0 10px;
   font: 600 14px var(--font-title);
   color: var(--muted);
-  display: flex;
-  gap: 12px;
-  align-items: baseline;
+}
+.activity-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+.activity-tile {
+  display: grid;
+  gap: 2px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+}
+.activity-tile span,
+.activity-tile small {
+  font-size: 12px;
+  color: var(--muted);
+}
+.activity-tile b {
+  font: 700 26px/1.1 var(--font-title);
+  font-variant-numeric: tabular-nums;
+}
+.activity-heatmaps,
+.activity-lists {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 22px;
+}
+.activity-heatmaps.single .heatmap-grid {
+  max-width: 640px;
 }
 .heatmap-grid {
   display: grid;
   grid-auto-flow: column;
-  grid-template-rows: repeat(7, 14px);
-  grid-auto-columns: 14px;
+  grid-template-rows: repeat(7, auto);
+  grid-auto-columns: 1fr;
   gap: 4px;
-  overflow-x: auto;
-  padding-bottom: 4px;
 }
 .heatmap-grid i {
-  border-radius: 3px;
   display: block;
+  aspect-ratio: 1;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
 }
 .heatmap-grid i.empty {
   background: transparent;
+}
+.activity-bars {
+  display: grid;
+  gap: 8px;
+}
+.activity-bar {
+  display: grid;
+  grid-template-columns: minmax(110px, 170px) 1fr 32px;
+  gap: 10px;
+  align-items: center;
+  font-size: 13px;
+}
+.activity-bar a,
+.activity-bar span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+  text-decoration: none;
+}
+.activity-bar a:hover {
+  text-decoration: underline;
+}
+.activity-bar .track {
+  height: 10px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+}
+.activity-bar .track div {
+  height: 100%;
+  border-radius: 5px;
+}
+.activity-bar b {
+  text-align: right;
+  font-size: 13px;
+}
+.activity-feed {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+.activity-feed li {
+  display: grid;
+  grid-template-columns: 58px 10px minmax(0, 1fr);
+  gap: 10px;
+  align-items: baseline;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 13.5px;
+}
+.activity-feed li:last-child {
+  border-bottom: 0;
+}
+.activity-feed .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  align-self: center;
+}
+.activity-feed .what small {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
 }
 
 .search-backdrop {
@@ -1576,8 +1670,9 @@ code {
 .search {
   width: min(760px, 100%);
   max-height: 72vh;
-  display: grid;
-  grid-template-rows: auto auto 1fr auto;
+  /* column: field, optional message, scrolling results, hint */
+  display: flex;
+  flex-direction: column;
   border-radius: 20px;
   background: rgba(14, 30, 33, 0.96);
   border: 1px solid var(--line);
@@ -1606,6 +1701,9 @@ code {
   margin: 0;
 }
 .results {
+  flex: 1;
+  min-height: 0;
+  overscroll-behavior: contain;
   list-style: none;
   margin: 0;
   padding: 8px;
@@ -1868,6 +1966,12 @@ code {
   padding: 0;
   display: grid;
   gap: 6px;
+}
+.cal-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 .cal-list li {
   display: grid;
@@ -2176,4 +2280,19 @@ code {
 .google-panel .button.active {
   color: var(--green);
   border-color: rgba(74, 222, 128, 0.45);
+}
+/* Projects: other code folders grouped by code root */
+.folder-group {
+  display: grid;
+  gap: 8px;
+}
+.folder-group + .folder-group {
+  margin-top: 14px;
+}
+.folder-group h3 {
+  margin: 0;
+  font: 600 14px var(--font-title);
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
 }

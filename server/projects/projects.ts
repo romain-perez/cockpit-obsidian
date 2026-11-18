@@ -25,12 +25,13 @@ async function codeFolder(path: string): Promise<CodeFolder> {
     name: basename(absolute),
     git: await gitStatus(absolute),
     modifiedAt: modified ? new Date(modified).toISOString().slice(0, 10) : "",
+    group: null,
   };
 }
 
-/** Code folders found under the configured roots (depth 1 or 2). */
-export function discoveredFolders(): string[] {
-  const folders: string[] = [];
+/** Code folders found under the configured roots (depth 1 or 2), with the group of their root. */
+export function discoveredFolders(): { path: string; group: string }[] {
+  const folders: { path: string; group: string }[] = [];
   const subdirectories = (path: string) =>
     readdirSync(path, { withFileTypes: true })
       .filter((e) => e.isDirectory() && !e.name.startsWith("."))
@@ -38,7 +39,7 @@ export function discoveredFolders(): string[] {
   for (const root of config().projects.codeRoots) {
     if (!existsSync(root.path)) continue;
     const level1 = subdirectories(root.path);
-    folders.push(...(root.depth === 1 ? level1 : level1.flatMap(subdirectories)));
+    for (const path of root.depth === 1 ? level1 : level1.flatMap(subdirectories)) folders.push({ path, group: root.group });
   }
   return folders;
 }
@@ -101,11 +102,14 @@ export async function buildProjects(): Promise<ProjectsData> {
   const known = new Set(projects.flatMap((p) => p.folders.map((f) => expandHome(f.path))));
   const otherFolders = await Promise.all(
     discoveredFolders()
-      .filter((f) => !known.has(f))
-      .map((f) => codeFolder(toTilde(f))),
+      .filter((f) => !known.has(f.path))
+      .map(async (f) => ({ ...(await codeFolder(toTilde(f.path))), group: f.group })),
   );
   otherFolders.sort((a, b) => (b.git?.lastCommit?.date ?? b.modifiedAt).localeCompare(a.git?.lastCommit?.date ?? a.modifiedAt));
-  return { projects, otherFolders };
+  const otherFolderGroups = [...new Set(config().projects.codeRoots.map((r) => r.group))]
+    .map((name) => ({ name, folders: otherFolders.filter((f) => f.group === name) }))
+    .filter((g) => g.folders.length);
+  return { projects, otherFolders, otherFolderGroups };
 }
 
 /** Allow-list for "Ouvrir dans VS Code": project folders + discovered folders. */

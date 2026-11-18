@@ -108,23 +108,30 @@ export function OtherFoldersView({ data }: { data: ProjectsData }) {
       <h2>
         Autres dossiers de code <span className="muted">sans fiche de projet</span>
       </h2>
-      <ul className="task-list">
-        {data.otherFolders.map((f) => (
-          <li key={f.path} className="task info">
-            <span className="color-strip" style={{ background: f.git ? "var(--peach)" : "rgba(255,255,255,.15)" }} />
-            <div>
-              <b>{f.name}</b>
-              <small className="mono">{f.path}</small>
-              <small>
-                <GitStatusLine folder={f} />
-              </small>
-            </div>
-            <button className="button small" onClick={() => openFolder(f.path)}>
-              <Icon name="code" size={13} /> VS Code
-            </button>
-          </li>
-        ))}
-      </ul>
+      {data.otherFolderGroups.map((group) => (
+        <div key={group.name} className="folder-group">
+          <h3>
+            {group.name} <span className="muted">{group.folders.length}</span>
+          </h3>
+          <ul className="task-list">
+            {group.folders.map((f) => (
+              <li key={f.path} className="task info">
+                <span className="color-strip" style={{ background: f.git ? "var(--peach)" : "rgba(255,255,255,.15)" }} />
+                <div>
+                  <b>{f.name}</b>
+                  <small className="mono">{f.path}</small>
+                  <small>
+                    <GitStatusLine folder={f} />
+                  </small>
+                </div>
+                <button className="button small" onClick={() => openFolder(f.path)}>
+                  <Icon name="code" size={13} /> VS Code
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
     </section>
   );
 }
