@@ -1,0 +1,91 @@
+// Configuration du Cockpit : copie ce fichier en « cockpit.config.json » et adapte-le.
+// Les commentaires (// …) sont autorisés. Seul « vault.path » est obligatoire : tout le reste a une valeur par défaut.
+// Variables d'environnement possibles : COCKPIT_CONFIG (autre fichier), COCKPIT_PORT, COCKPIT_VAULT.
+{
+  "server": {
+    "port": 4321 // http://localhost:4321 (le serveur n'écoute qu'en local)
+  },
+  "locale": { "language": "fr-CH", "timeZone": "Europe/Zurich" },
+
+  "vault": {
+    "path": "~/vault", // OBLIGATOIRE : dossier de ton coffre Obsidian
+    "name": "vault", // nom du coffre dans Obsidian (par défaut : nom du dossier)
+    "excludedFolders": ["Travail/"], // dossiers jamais lus (en plus de .obsidian/, .trash/, .git/)
+    "privateFolderName": "_privé", // dossiers exclus de la recherche
+    "schoolFolder": "École", // années (« 1ère année », « 2ème année »…) contenant les modules
+    "assistantFolder": "Assistant", // notes de l'assistant (journal, fiches de projets)
+    "personalFolder": "Perso",
+    "journalFolder": "Assistant/Journal", // une note AAAA-MM-JJ.md par jour
+    "projectsFolder": "Assistant/Projets", // une fiche par projet (voir « projects » plus bas)
+    "agendaFile": "Perso/Agenda.md", // créée au premier rendez-vous ajouté (seule note écrite par le Cockpit)
+    "gradesFile": "École/_privé/Notes d'examen.md"
+  },
+
+  "school": {
+    // Conventions des notes de modules (valeurs par défaut) :
+    // "moduleNotePattern": "^-(M\\d+).*\\.md$",          note principale « -M295.md »
+    // "sequenceFilePattern": "^Séquence (\\d+).*\\.md$",  notes « Séquence 3.md »
+    // "examLinePattern": "^- \\[( |x|X)\\] (Test \\d+)\\s*[—–-]\\s*(.*)$",   « - [ ] Test 3 — vendredi 20 novembre 2026 »
+    // "frontmatter": { "category": "catégorie", "color": "couleur", "examDone": "examen passé" },
+    "downloadsFolder": "~/Downloads", // PDF de cours « Titre - M165 — ….pdf » signalés comme séquence à rédiger
+    "neutralColor": "#94aca8",
+    "fallbackColors": { "M117": "#4ADE80" }, // couleur des modules sans dossier dans le vault
+    "nonModuleCourses": {
+      // cours sans module : nom affiché + note ouverte au clic
+      "MATH": { "label": "Maths", "note": "École/Maths/Maths.md" }
+    }
+  },
+
+  "schedule": {
+    "url": null, // lien d'un calendrier .ics en ligne (horaire de classe), ou null
+    "cacheFile": "~/.cache/cockpit/schedule.ics",
+    "fallbackFile": null, // fichier .ics local utilisé si l'adresse ne répond pas
+    "refreshHours": 6,
+    "periodMinutes": 45, // durée d'une période si le .ics n'a pas d'heure de fin
+    "roomPrefixPattern": "", // retiré du début du nom de la salle, ex. "^ECOLE\\s*/\\s*" pour « ECOLE / F119 »
+    "excludedCodes": ["Sport"], // cours à ne pas afficher (après conversion par codeRules)
+    "codeRules": [
+      // titre du cours → code court (« M165 … » est reconnu tout seul)
+      { "pattern": "éducation physique|^sport", "code": "Sport" },
+      { "pattern": "^math", "code": "MATH" }
+    ]
+  },
+
+  "projects": {
+    // Une fiche de projet = une note de vault.projectsFolder avec les propriétés :
+    //   espace: projets · dossier: ~/github/mon-projet · prochaine-etape: … · kb: "[[Ma note]]" · depot: https://github.com/…
+    "codeRoots": [
+      // où chercher les dossiers de code sans fiche (profondeur 1 ou 2)
+      { "path": "~/github", "depth": 1 }
+    ]
+  },
+
+  "drive": {
+    // facultatif : partage d'un dossier par un script (sortie de type « push-ecole »)
+    "enabled": false,
+    "command": "~/.local/bin/push-ecole",
+    "remoteLabel": "gdrive:Classe/Moi",
+    "checkEveryMinutes": 15
+  },
+
+  "desktop": {
+    // facultatif : Hyprland (ouvrir Obsidian/VS Code et passer sur leur fenêtre)
+    "enabled": true,
+    "launcher": "app2unit --",
+    "obsidian": { "command": "obsidian", "windowClass": "^(md\\.obsidian\\.Obsidian)$", "workspace": null },
+    "editor": { "command": "code", "windowClass": "^([Cc]ode(-url-handler)?)$" }
+  },
+
+  "google": {
+    // facultatif : synchro avec Google Agenda (voir README)
+    "enabled": false,
+    "secretsFolder": "~/.config/cockpit",
+    "pastDays": 30,
+    "futureDays": 400,
+    "pollMinutes": 3,
+    "calendars": {
+      "courses": { "name": "Cours", "description": "Horaire de cours synchronisé par le Cockpit." },
+      "personal": { "name": "Perso", "description": "Rendez-vous et examens du Cockpit." }
+    }
+  }
+}
