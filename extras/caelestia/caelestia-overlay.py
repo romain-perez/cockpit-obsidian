@@ -15,7 +15,8 @@ Safety: the overlay folder is only replaced if it carries our marker; if an inse
 packaged shell is restarted, with a desktop notification.
 
 Usage:
-  caelestia-overlay.py install [--url URL] [--no-restart]   build the overlay, restart and verify the shell
+  caelestia-overlay.py install [--url URL] [--open-command CMD] [--no-restart]
+                                                             build the overlay, restart and verify the shell
   caelestia-overlay.py check                                 rebuild only if the packaged shell changed
   caelestia-overlay.py remove                                back to the packaged shell
 """
@@ -88,9 +89,14 @@ def notify(message: str) -> None:
     subprocess.run(["notify-send", "-a", "Cockpit", "Widget Cockpit", message], check=False)
 
 
-def fingerprint(url: str) -> str:
+def open_command(url: str, command: str | None) -> list[str]:
+    """Command run when the widget is clicked: a custom one through sh, or the browser."""
+    return ["sh", "-c", command] if command else ["xdg-open", url]
+
+
+def fingerprint(url: str, command: str | None = None) -> str:
     """Changes when the packaged shell (files we patch, listing of mirrored folders) or our files change."""
-    digest = hashlib.sha256(url.encode())
+    digest = hashlib.sha256(f"{url}\n{command or ''}".encode())
     for relative in sorted(PATCHES):
         digest.update((SOURCE / relative).read_bytes())
     for folder in sorted({str(Path(p).parent) for p in TOUCHED} | {"."}):
@@ -127,7 +133,7 @@ def owned(path: Path) -> bool:
     return (path / MARKER).is_file()
 
 
-def build(url: str) -> None:
+def build(url: str, command: str | None = None) -> None:
     if not (SOURCE / "shell.qml").is_file():
         raise OverlayError(f"shell Caelestia introuvable dans {SOURCE}")
     if TARGET.exists() and not owned(TARGET):
@@ -138,9 +144,15 @@ def build(url: str) -> None:
     try:
         mirror(SOURCE, staging, "")
         for relative in ADDED:
-            text = (EXTRA / relative).read_text().replace("@COCKPIT_URL@", url)
+            text = (
+                (EXTRA / relative)
+                .read_text()
+                .replace("@COCKPIT_URL@", url)
+                .replace("@COCKPIT_OPEN_COMMAND@", json.dumps(open_command(url, command), ensure_ascii=False))
+            )
             (staging / relative).write_text(text)
-        (staging / MARKER).write_text(json.dumps({"fingerprint": fingerprint(url), "url": url, "built": time.strftime("%Y-%m-%d %H:%M")}, indent=2))
+        state = {"fingerprint": fingerprint(url, command), "url": url, "openCommand": command, "built": time.strftime("%Y-%m-%d %H:%M")}
+        (staging / MARKER).write_text(json.dumps(state, indent=2, ensure_ascii=False))
     except Exception:
         shutil.rmtree(staging, ignore_errors=True)
         raise
@@ -247,9 +259,9 @@ def shell_errors() -> list[str]:
     return errors
 
 
-def install(url: str, restart: bool) -> int:
+def install(url: str, restart: bool, command: str | None = None) -> int:
     try:
-        build(url)
+        build(url, command)
     except OverlayError as error:
         removed = remove_overlay()
         if removed and restart:
@@ -281,13 +293,13 @@ def check() -> int:
     if not owned(TARGET):
         return 0
     state = json.loads((TARGET / MARKER).read_text())
-    url = state.get("url", DEFAULT_URL)
+    url, command = state.get("url", DEFAULT_URL), state.get("openCommand")
     try:
-        if state.get("fingerprint") == fingerprint(url):
+        if state.get("fingerprint") == fingerprint(url, command):
             return 0
     except FileNotFoundError:
         pass  # a patched file disappeared: rebuild fails below and falls back to the packaged shell
-    return install(url, restart=True)
+    return install(url, restart=True, command=command)
 
 
 def main() -> int:
@@ -295,13 +307,14 @@ def main() -> int:
     sub = parser.add_subparsers(dest="command", required=True)
     install_parser = sub.add_parser("install", help="construire la surcouche, redémarrer et vérifier le shell")
     install_parser.add_argument("--url", default=DEFAULT_URL, help=f"adresse du Cockpit (défaut : {DEFAULT_URL})")
+    install_parser.add_argument("--open-command", help="commande lancée au clic (par défaut : ouvrir l'adresse dans le navigateur)")
     install_parser.add_argument("--no-restart", action="store_true", help="ne pas redémarrer le shell")
     sub.add_parser("check", help="reconstruire seulement si caelestia-shell a changé")
     sub.add_parser("remove", help="retirer la surcouche et revenir au shell d'origine")
     args = parser.parse_args()
 
     if args.command == "install":
-        return install(args.url, restart=not args.no_restart)
+        return install(args.url, restart=not args.no_restart, command=args.open_command)
     if args.command == "check":
         return check()
     set_units(False)

@@ -7,6 +7,7 @@ Facultatif. Ajoute à la barre de [Caelestia](https://github.com/caelestia-dots/
 ```bash
 python3 extras/caelestia/caelestia-overlay.py install            # Cockpit sur http://127.0.0.1:4321
 python3 extras/caelestia/caelestia-overlay.py install --url URL  # autre adresse
+python3 extras/caelestia/caelestia-overlay.py install --open-command "mon-script"  # commande lancée au clic (ex. passer sur un onglet déjà ouvert)
 ```
 
 Le script :
