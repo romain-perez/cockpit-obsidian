@@ -2,6 +2,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { config } from "../config.ts";
+import { updateFile } from "../core/safe-write.ts";
 import { parseFrenchDate } from "../core/dates.ts";
 import { headingTitle, obsidianLink, parseFrontmatter, stripFrontmatter } from "../core/markdown.ts";
 import type { ModuleExam, Sequence } from "../../shared/types.ts";
@@ -17,6 +18,7 @@ export interface ModuleRecord {
   exams: ModuleExam[];
   link: string;
   refcard: string | null;
+  notePath: string; // absolute path of the module note (server only, never sent to the browser)
 }
 
 const subfolders = (path: string): string[] =>
@@ -86,6 +88,7 @@ export function readModules(): ModuleRecord[] {
         sequences,
         exams,
         link: link(join(folder, note)),
+        notePath: join(folder, note),
         refcard: existsSync(join(folder, "refcard.md")) ? link(join(folder, "refcard.md")) : null,
       });
     }
@@ -109,4 +112,23 @@ export function pendingCoursePdfs(): { code: string; title: string }[] {
     .map((f) => f.match(coursePdfPattern))
     .filter((m): m is RegExpMatchArray => m !== null)
     .map((m) => ({ code: m[2], title: m[1].replace(/^_\s*/, "") }));
+}
+
+/** Ticks an exam line ("- [ ] Test 3 — …" → "- [x] Test 3 — …") in the module note. Returns false if not found. */
+export async function tickExam(code: unknown, examName: unknown): Promise<boolean> {
+  if (typeof code !== "string" || typeof examName !== "string") return false;
+  const module = modulesByCode().get(code);
+  if (!module) return false;
+  const pattern = new RegExp(config().school.examLinePattern.source, "gm");
+  const { value } = await updateFile<boolean>(module.notePath, (current) => {
+    if (current === null) return { content: null, value: false };
+    let ticked = false;
+    const next = current.replace(pattern, (line: string, box: string, name: string) => {
+      if (ticked || name !== examName || box.toLowerCase() === "x") return line;
+      ticked = true;
+      return line.replace("[ ]", "[x]");
+    });
+    return { content: ticked ? next : null, value: ticked };
+  });
+  return value;
 }

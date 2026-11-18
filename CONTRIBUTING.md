@@ -6,7 +6,7 @@ La V1 fixe le niveau du code : chaque changement doit le garder. Ce fichier déc
 
 - **Langues** : code en anglais (fichiers, noms, commentaires, routes, classes CSS), texte affiché à l'utilisateur en français.
 - **Configuration** : aucune valeur personnelle dans le code. Un nouveau réglage s'ajoute dans `server/config.ts` (valeur par défaut + validation avec un message en français), dans `cockpit.config.example.json` (commenté) et dans le README.
-- **Écritures** : toute écriture de fichier passe par `server/core/safe-write.ts` (atomique, isolée, durable). Le vault reste en lecture seule, sauf la note d'agenda.
+- **Écritures** : toute écriture de fichier passe par `server/core/safe-write.ts` (atomique, isolée, durable). Le vault reste en lecture seule, sauf la note d'agenda et la case d'un test coché depuis « À faire ».
 - **Identifiants stables** : ne jamais changer les textes hachés des identifiants (`rowId` de l'agenda, `cours|…`, `agenda|…`, `test|…` dans `server/google/sync.ts`), sinon les événements sont dupliqués sur Google Agenda.
 - **Contrat de données** : les types partagés entre serveur et interface sont dans `shared/types.ts`.
 - **Tests** : toute nouvelle logique du serveur a ses tests dans `test/` (`node --test`). Les fonctions pures (parseurs, calculs) sont testées directement ; un vault temporaire est créé par `test/helpers.ts`.

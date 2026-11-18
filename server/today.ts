@@ -3,7 +3,8 @@ import { daysBetween } from "./core/dates.ts";
 import { buildProjects } from "./projects/projects.ts";
 import { buildSchoolData, bySeverity } from "./school/school-data.ts";
 import { readJournal } from "./vault/journal.ts";
-import type { Task, TodayData } from "../shared/types.ts";
+import { readDismissed, splitDismissed, withFingerprints, type ComputedTask } from "./tasks.ts";
+import type { TodayData } from "../shared/types.ts";
 
 const STALE_CHANGES_DAYS = 3;
 
@@ -13,7 +14,7 @@ export async function buildToday(forcedDate?: string): Promise<TodayData> {
   const active = (await buildProjects()).projects.filter((p) => !p.archived);
   const plural = (n: number, word: string) => `${n} ${word}${n > 1 ? "s" : ""}`;
 
-  const tasks: Task[] = [...school.tasks];
+  const tasks: ComputedTask[] = []; // project tasks (school tasks come already split from buildSchoolData)
   // One task per project (all its folders grouped)
   for (const p of active) {
     const stale = p.folders.filter(
@@ -61,5 +62,12 @@ export async function buildToday(forcedDate?: string): Promise<TodayData> {
   const journal = readJournal()
     .filter((e) => e.nextStep && !/^aucun/i.test(e.nextStep) && daysBetween(e.date, today) <= 14)
     .slice(0, 6);
-  return { school, projects: active.slice(0, 3), tasks: tasks.sort(bySeverity), journal };
+  const projectTasks = splitDismissed(withFingerprints(tasks), readDismissed());
+  return {
+    school,
+    projects: active.slice(0, 3),
+    tasks: [...school.tasks, ...projectTasks.visible].sort(bySeverity),
+    hiddenTasks: [...school.hiddenTasks, ...projectTasks.hidden],
+    journal,
+  };
 }

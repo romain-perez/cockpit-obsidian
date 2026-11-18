@@ -5,7 +5,7 @@ Le vault reste la source de vérité (fichiers Markdown). Le Cockpit les lit et 
 
 - Espaces **Aujourd'hui · École · Projets · Perso**, chacun avec un carrousel et des vues (calendrier, à faire, modules, notes d'examen, activité…).
 - Recherche dans tout le vault : `/` ou `Ctrl+K` (sans accents, plusieurs mots).
-- **Lecture seule** du vault, sauf une note d'agenda (rendez-vous et examens ajoutés depuis le calendrier).
+- **Lecture seule** du vault, sauf la note d'agenda (rendez-vous et examens ajoutés depuis le calendrier) et la case d'un test coché depuis « À faire ».
 - Dossiers exclus (travail, privé…) jamais lus, jamais affichés, jamais trouvés par la recherche.
 - Fonctions facultatives : synchro Google Agenda (et donc le calendrier du téléphone), partage d'un dossier par un script, intégration Hyprland.
 

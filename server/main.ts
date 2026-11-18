@@ -13,6 +13,9 @@
 //   POST /api/agenda                    { date, start, end, type: "appointment"|"exam", title, place, module, note }
 //   POST /api/agenda/update             { id, date, start, end, type, title, place, module, note }
 //   POST /api/agenda/remove             { id }
+//   POST /api/tasks/dismiss             { id, fingerprint } → task hidden until it changes
+//   POST /api/tasks/restore             { id } → hidden task shown again
+//   POST /api/tasks/tick                { module, exam } → "- [x] Test N" in the module note
 //   POST /api/open-note                 { link: "obsidian://open?vault=…" } → opens the note and shows Obsidian
 //   POST /api/open-folder               { path: "~/github/portfolio" } → opens a known code folder in the editor
 //   POST /api/google/sync               synchronizes now
@@ -47,6 +50,8 @@ const { allowedFolders, buildProjects } = await import("./projects/projects.ts")
 const { buildSchoolData } = await import("./school/school-data.ts");
 const { refreshSchedule, scheduleSource } = await import("./school/schedule.ts");
 const { buildToday } = await import("./today.ts");
+const { dismissTask, restoreTask } = await import("./tasks.ts");
+const { tickExam } = await import("./school/modules.ts");
 const { buildActivity } = await import("./vault/journal.ts");
 const { buildPersonalData } = await import("./vault/personal.ts");
 const { search } = await import("./vault/search.ts");
@@ -197,6 +202,26 @@ async function handlePost(url: URL, req: IncomingMessage, res: ServerResponse): 
       if (config().google.enabled) await releasePhoneRow(String(id));
       syncGoogleSoon();
       sendText(res, 200);
+      return true;
+    }
+    case "/api/tasks/dismiss": {
+      const { id, fingerprint } = await readBody(req);
+      const today = await buildToday();
+      const existing = new Set([...today.tasks, ...today.hiddenTasks].map((t) => t.id));
+      if (typeof id !== "string" || !existing.has(id)) throw new HttpError(404, "Tâche introuvable.");
+      if (!(await dismissTask(id, fingerprint, existing))) throw new HttpError(400, "Tâche invalide.");
+      sendText(res, 204);
+      return true;
+    }
+    case "/api/tasks/restore": {
+      sendText(res, (await restoreTask((await readBody(req)).id)) ? 204 : 404);
+      return true;
+    }
+    case "/api/tasks/tick": {
+      const { module, exam } = await readBody(req);
+      if (!(await tickExam(module, exam))) throw new HttpError(404, "Test introuvable dans la note du module.");
+      syncGoogleSoon();
+      sendText(res, 204);
       return true;
     }
     case "/api/agenda/remove": {
