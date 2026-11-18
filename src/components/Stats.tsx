@@ -14,6 +14,8 @@ const shortSemesterName = (name: string) =>
     .replace("ème année · ", "A ")
     .replace(/(\d)(er|ème) semestre/, "S$1");
 
+const semesterBlockId = (index: number) => `semester-${index}`;
+
 export function StatsView({ data }: { data: SchoolData }) {
   const { gradesFile } = useConfig();
   const semesters = data.semesters;
@@ -58,7 +60,10 @@ export function StatsView({ data }: { data: SchoolData }) {
             <button
               key={s.name}
               className={`semester-tile${i === selected ? " picked" : ""}`}
-              onClick={() => setSelected(i)}
+              onClick={() => {
+                setSelected(i);
+                document.getElementById(semesterBlockId(i))?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
               aria-pressed={i === selected}
             >
               <span className="name">{s.name}</span>
@@ -79,13 +84,28 @@ export function StatsView({ data }: { data: SchoolData }) {
       </div>
 
       <div className="stats-body">
-        <div className="block">
-          <h3>{semester.name}</h3>
-          <Bars semester={semester} />
+        <div className="semester-stack">
+          {/* Every semester with grades, most recent first (empty semesters never appear in the grades note) */}
+          {semesters
+            .map((s, i) => ({ s, i }))
+            .reverse()
+            .map(({ s, i }) => (
+              <div key={s.name} id={semesterBlockId(i)} className={`block semester-block${i === selected ? " picked" : ""}`}>
+                <div className="semester-head">
+                  <h3>{s.name}</h3>
+                  <span className="mono" style={{ color: gradeColor(s.average) }}>
+                    {format(s.average)}
+                  </span>
+                  <span className={`status${s.inProgress ? " in-progress" : ""}`}>{s.inProgress ? "en cours" : "définitif"}</span>
+                </div>
+                <Bars semester={s} />
+              </div>
+            ))}
         </div>
         <div className="block column">
           <h3>Moyenne par semestre</h3>
           <Curve values={semesters.map((s) => s.average)} labels={semesters.map((s) => shortSemesterName(s.name))} />
+          <h3 className="facts-title">{semester.name}</h3>
           <div className="facts">
             <div>
               <span>Meilleure</span>
