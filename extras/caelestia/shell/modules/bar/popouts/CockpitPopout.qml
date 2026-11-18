@@ -99,32 +99,55 @@ ColumnLayout {
         color: Colours.palette.m3onSurfaceVariant
     }
 
-    Repeater {
-        model: CockpitData.online ? (root.info?.following ?? []) : []
+    // Three columns (day and time, colour dot, course): the first one takes the width of its longest text
+    GridLayout {
+        visible: CockpitData.online && (root.info?.following?.length ?? 0) > 0
+        columns: 3
+        columnSpacing: Tokens.spacing.medium
+        rowSpacing: Tokens.spacing.extraSmall
 
-        RowLayout {
-            id: row
-
-            required property var modelData
-
-            spacing: Tokens.spacing.medium
+        Repeater {
+            model: CockpitData.online ? (root.info?.following ?? []) : []
 
             StyledText {
-                Layout.preferredWidth: 92
-                text: `${row.modelData.day === "aujourd'hui" ? "" : row.modelData.day.split(" ")[0] + " "}${row.modelData.start}`
+                required property var modelData
+
+                Layout.row: index
+                Layout.column: 0
+                required property int index
+                text: `${modelData.day === "aujourd'hui" ? "" : modelData.day.split(" ")[0] + " "}${modelData.start}`
                 font: Tokens.font.body.builders.small.build()
                 color: Colours.palette.m3onSurfaceVariant
             }
+        }
+
+        Repeater {
+            model: CockpitData.online ? (root.info?.following ?? []) : []
 
             StyledRect {
+                required property var modelData
+                required property int index
+
+                Layout.row: index
+                Layout.column: 1
+                Layout.alignment: Qt.AlignVCenter
                 implicitWidth: 8
                 implicitHeight: 8
                 radius: 4
-                color: row.modelData.color
+                color: modelData.color
             }
+        }
+
+        Repeater {
+            model: CockpitData.online ? (root.info?.following ?? []) : []
 
             StyledText {
-                text: `${row.modelData.label} · ${row.modelData.roomShort}`
+                required property var modelData
+                required property int index
+
+                Layout.row: index
+                Layout.column: 2
+                text: `${modelData.label} · ${modelData.roomShort}`
                 font: Tokens.font.body.builders.small.build()
                 color: Colours.palette.m3onSurface
             }
