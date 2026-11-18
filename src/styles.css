@@ -999,15 +999,45 @@ code {
   align-items: center;
   font-family: var(--font-mono);
 }
-.semester-tile .status {
+.semester-tile .status,
+.semester-head .status {
   font: 700 10px var(--font-mono);
   padding: 2px 7px;
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.08);
 }
-.semester-tile .status.in-progress {
+.semester-tile .status.in-progress,
+.semester-head .status.in-progress {
   background: rgba(242, 181, 140, 0.18);
   color: var(--peach);
+}
+.semester-stack {
+  display: grid;
+  gap: 18px;
+  align-content: start;
+}
+.stats .semester-block {
+  scroll-margin-top: 16px;
+  border: 1px solid transparent;
+  transition: border-color 0.25s var(--ease);
+}
+.stats .semester-block.picked {
+  border-color: rgba(242, 181, 140, 0.45);
+}
+.semester-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  align-items: baseline;
+}
+.semester-head h3 {
+  margin: 0;
+}
+.semester-head .mono {
+  font-weight: 700;
+}
+.facts-title {
+  margin-bottom: -6px;
 }
 .stats-body {
   display: grid;
