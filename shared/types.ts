@@ -1,0 +1,278 @@
+// Data contract between the server and the browser.
+// Field names are in English; the values meant for the user (titles, labels, details) are in French.
+
+// ---------------------------------------------------------------- configuration
+
+/** Configuration exposed to the browser (no secrets, no absolute paths). */
+export interface PublicConfig {
+  vaultName: string;
+  language: string;
+  agendaFile: string;
+  gradesFile: string;
+  projectsFolder: string;
+  drive: { enabled: boolean; remoteLabel: string; commandName: string };
+  google: { enabled: boolean; personalCalendar: string; coursesCalendar: string };
+}
+
+// ---------------------------------------------------------------- school
+
+/** A block of consecutive periods of the same course. */
+export interface Course {
+  code: string; // "M165", "MATH"
+  label: string; // "M165", "Maths"
+  start: string; // "07:55"
+  end: string; // "12:00"
+  room: string; // "F119 Labo ICT"
+  teacher: string; // "" if unknown
+  color: string;
+  link: string | null; // obsidian:// link to the module note
+}
+
+export interface SchoolDay {
+  date: string; // "2026-11-17"
+  courses: Course[];
+  exams: string[]; // ["Test 3 · M295"]
+}
+
+export interface Sequence {
+  number: number;
+  title: string;
+  examDone: boolean; // front matter « examen passé: true »
+  hasSource: boolean; // a « Source : [[…pdf]] » line exists
+  link: string;
+}
+
+export interface ModuleExam {
+  name: string; // "Test 3"
+  date: string | null;
+  done: boolean; // ticked in the module note
+}
+
+export interface SchoolModule {
+  code: string;
+  title: string;
+  year: string; // "2ème année"
+  finished: boolean;
+  active: boolean; // has courses around today
+  category: string;
+  color: string;
+  sequences: Sequence[];
+  exams: ModuleExam[];
+  nextCourse: { date: string; start: string; room: string } | null;
+  link: string;
+  refcard: string | null;
+}
+
+export type Severity = "urgent" | "warning" | "info";
+
+export interface Task {
+  id: string;
+  title: string;
+  detail: string;
+  when: string; // "ven. 20", "en retard"…
+  severity: Severity;
+  color: string;
+  link?: string;
+}
+
+export interface DriveFiles {
+  added: string[];
+  modified: string[];
+  deleted: string[];
+}
+
+export interface DriveStatus {
+  state: "upToDate" | "pending" | "checking" | "unknown";
+  detail: string; // "à jour", "3 nouveaux, 1 modifié"
+  checkedAt: string | null;
+  running: boolean;
+  files: DriveFiles;
+  output: string; // raw output of the last check
+}
+
+export interface DriveUpload {
+  running: boolean;
+  lines: string[];
+  exitCode: number | null;
+  startedAt: string | null;
+  finishedAt: string | null;
+}
+
+export interface SubjectGrade {
+  subject: string; // "M346", "Maths"
+  code: string | null;
+  average: number;
+  grades: number[]; // detailed grades if known (weights unfolded)
+  final: boolean;
+  color: string;
+  link: string | null;
+}
+
+export interface Semester {
+  name: string;
+  average: number;
+  inProgress: boolean;
+  subjects: SubjectGrade[];
+}
+
+export interface SchoolData {
+  generatedAt: string;
+  today: string;
+  week: SchoolDay[];
+  modules: SchoolModule[];
+  tasks: Task[];
+  drive: DriveStatus;
+  semesters: Semester[];
+}
+
+// ---------------------------------------------------------------- projects
+
+export interface GitStatus {
+  branch: string;
+  lastCommit: { date: string; message: string } | null;
+  commitsLast30Days: number;
+  uncommitted: number;
+  unpushed: number | null; // null: no upstream branch
+  remote: string | null;
+  commitsPerDay: Record<string, number>;
+}
+
+export interface CodeFolder {
+  path: string; // "~/github/portfolio"
+  name: string;
+  git: GitStatus | null;
+  modifiedAt: string;
+}
+
+export interface Project {
+  name: string;
+  sheet: string; // obsidian:// link to the project sheet
+  status: string;
+  nextStep: string;
+  folders: CodeFolder[];
+  repository: string | null;
+  knowledgeBase: string | null;
+  archived: boolean;
+  color: string;
+  updated: string;
+}
+
+export interface ProjectsData {
+  projects: Project[];
+  otherFolders: CodeFolder[];
+}
+
+// ---------------------------------------------------------------- vault, personal, journal, search
+
+export interface NoteSummary {
+  title: string;
+  path: string;
+  link: string;
+  modifiedAt: string;
+}
+
+export interface PersonalFolder {
+  name: string;
+  noteCount: number;
+  recent: NoteSummary[];
+  link: string | null;
+}
+
+export interface PersonalData {
+  folders: PersonalFolder[];
+  recent: NoteSummary[];
+}
+
+export interface JournalEntry {
+  date: string;
+  title: string;
+  request: string;
+  nextStep: string;
+  link: string;
+}
+
+export interface ActivityDay {
+  date: string;
+  notes: number;
+  commits: number;
+}
+
+export interface ActivityData {
+  journal: JournalEntry[];
+  days: ActivityDay[];
+}
+
+export type VaultArea = "school" | "assistant" | "personal" | "other";
+
+export interface SearchResult {
+  title: string;
+  path: string;
+  area: VaultArea;
+  link: string;
+  excerpt: { before: string; match: string; after: string } | null;
+}
+
+// ---------------------------------------------------------------- agenda and calendar
+
+export type AgendaEventType = "appointment" | "exam";
+
+export interface AgendaEvent {
+  id: string; // stable hash of the row
+  date: string;
+  start: string; // "" = whole day
+  end: string;
+  type: AgendaEventType;
+  title: string;
+  place: string;
+  module: string; // "M295" for an exam (optional)
+  note: string;
+  color: string;
+}
+
+export interface CalendarExam {
+  title: string;
+  code: string | null;
+  start: string;
+  color: string;
+  link: string | null;
+  agendaId: string | null; // set when the exam comes from the agenda (can be removed from the Cockpit)
+}
+
+export interface CalendarDay {
+  date: string;
+  courses: Course[];
+  exams: CalendarExam[];
+  events: AgendaEvent[];
+}
+
+export interface CalendarData {
+  days: CalendarDay[];
+  modules: { code: string; title: string }[];
+  agendaLink: string;
+}
+
+export interface TodayData {
+  school: SchoolData;
+  projects: Project[];
+  tasks: Task[];
+  journal: JournalEntry[];
+}
+
+// ---------------------------------------------------------------- Google
+
+export interface GoogleStatus {
+  enabled: boolean;
+  hasClient: boolean;
+  connected: boolean;
+  running: boolean;
+  lastSync: string | null;
+  summary: string;
+  error: string | null;
+}
+
+export interface ScheduleSource {
+  file: string | null;
+  online: boolean;
+  updatedAt: string | null;
+  error: string | null;
+}
