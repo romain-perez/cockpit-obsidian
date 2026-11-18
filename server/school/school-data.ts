@@ -5,6 +5,7 @@ import { obsidianLink } from "../core/markdown.ts";
 import { readAgenda } from "../agenda.ts";
 import { driveStatus } from "../drive.ts";
 import { readSemesters } from "./grades.ts";
+import { computeCfcGrade } from "./cfc.ts";
 import { modulesByCode, pendingCoursePdfs, type ModuleRecord } from "./modules.ts";
 import { blocksOfDay, readPeriods, type Period } from "./schedule.ts";
 import type { AgendaEvent, Course, SchoolData, SchoolDay, SchoolModule, Semester, Task } from "../../shared/types.ts";
@@ -78,6 +79,7 @@ export function buildSchoolData(forcedDate?: string): SchoolData {
     tasks: schoolTasks(today, modules, semesters, agenda),
     drive: driveStatus(),
     semesters,
+    cfc: school.cfc.enabled ? computeCfcGrade(semesters, school.cfc) : null,
   };
 }
 

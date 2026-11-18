@@ -47,17 +47,17 @@ puis `systemctl --user daemon-reload && systemctl --user enable --now cockpit`.
 
 Tout se règle dans **`cockpit.config.json`** (ignoré par git, commentaires `//` autorisés). Le modèle commenté est [`cockpit.config.example.json`](cockpit.config.example.json). Seul `vault.path` est obligatoire.
 
-| Section    | Contenu                                                                                                                  |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `server`   | port (le serveur n'écoute que sur 127.0.0.1)                                                                             |
-| `locale`   | langue et fuseau horaire (dates, synchro Google)                                                                         |
-| `vault`    | chemin et nom du coffre, **dossiers exclus**, emplacement des notes (agenda, notes d'examen, journal, fiches de projets) |
-| `school`   | conventions des notes de modules, couleurs, cours sans module, dossier des PDF téléchargés                               |
-| `schedule` | horaire de cours : adresse d'un calendrier `.ics`, cache, fichier de repli, règles titre → code, cours masqués           |
-| `projects` | dossiers où chercher du code, propriétés des fiches de projets                                                           |
-| `drive`    | script de partage et adresse web du dossier partagé (facultatif)                                                         |
-| `desktop`  | ouverture d'Obsidian / VS Code et bascule de fenêtre sous Hyprland (facultatif)                                          |
-| `google`   | synchro Google Agenda (facultatif)                                                                                       |
+| Section    | Contenu                                                                                                                   |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `server`   | port (le serveur n'écoute que sur 127.0.0.1)                                                                              |
+| `locale`   | langue et fuseau horaire (dates, synchro Google)                                                                          |
+| `vault`    | chemin et nom du coffre, **dossiers exclus**, emplacement des notes (agenda, notes d'examen, journal, fiches de projets)  |
+| `school`   | conventions des notes de modules, couleurs, cours sans module, dossier des PDF téléchargés, calcul de la note CFC (`cfc`) |
+| `schedule` | horaire de cours : adresse d'un calendrier `.ics`, cache, fichier de repli, règles titre → code, cours masqués            |
+| `projects` | dossiers où chercher du code, propriétés des fiches de projets                                                            |
+| `drive`    | script de partage et adresse web du dossier partagé (facultatif)                                                          |
+| `desktop`  | ouverture d'Obsidian / VS Code et bascule de fenêtre sous Hyprland (facultatif)                                           |
+| `google`   | synchro Google Agenda (facultatif)                                                                                        |
 
 Variables d'environnement : `COCKPIT_CONFIG` (autre fichier de configuration), `COCKPIT_PORT`, `COCKPIT_VAULT`.
 
@@ -67,6 +67,7 @@ Variables d'environnement : `COCKPIT_CONFIG` (autre fichier de configuration), `
   Propriétés : `catégorie`, `couleur`. Une séquence avec `examen passé: true` est considérée comme déjà évaluée.
   Examens dans la note du module : `- [ ] Test 3 — vendredi 20 novembre 2026` (cocher quand c'est passé).
 - **Notes d'examen** : une section `## 2ème année · 1er semestre` par semestre, un tableau `| Branche | Moyenne | Notes | Statut |` (`Statut` contient « définitive » quand c'est fini).
+  La vue Stats en tire une **note CFC provisoire** selon l'ordonnance (modules d'école 80 % et cours interentreprises 20 % arrondis à la demi-note, maths + anglais par semestre, culture générale dispensée ou non) et la note nécessaire au TPI : réglages dans `school.cfc`.
 - **Projets** : une fiche par projet dans `vault.projectsFolder`, avec les propriétés `espace: projets`, `dossier: ~/code/mon-projet`, `prochaine-etape`, `statut`, `kb: "[[Note]]"`, `depot: https://…`.
 - **Journal** : une note `AAAA-MM-JJ.md` par jour dans `vault.journalFolder`, sections `## Sujet` avec puces `- **Demande** : …` et `- **Prochaine étape** : …`.
 - **Agenda** : créé au premier ajout (`vault.agendaFile`), un tableau éditable à la main.
