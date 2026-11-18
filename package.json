@@ -1,7 +1,7 @@
 {
   "name": "cockpit",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Tableau de bord local pour un coffre Obsidian",
   "type": "module",
   "scripts": {
