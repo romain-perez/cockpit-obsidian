@@ -51,7 +51,7 @@ export interface CfcSettings {
 
 export interface Config {
   configFile: string | null;
-  server: { host: string; port: number; allowedOrigins: string[] };
+  server: { host: string; port: number; allowedOrigins: string[]; stateFolder: string }; // stateFolder: small state files of the Cockpit (outside the vault)
   locale: { language: string; timeZone: string };
   vault: {
     path: string;
@@ -129,7 +129,7 @@ export interface Config {
 // ---------------------------------------------------------------- defaults
 
 const DEFAULTS = {
-  server: { host: "127.0.0.1", port: 4321, allowedOrigins: [] as string[] },
+  server: { host: "127.0.0.1", port: 4321, allowedOrigins: [] as string[], stateFolder: "~/.local/state/cockpit" },
   locale: { language: "fr-CH", timeZone: "Europe/Zurich" },
   vault: {
     path: "",
@@ -375,6 +375,7 @@ export function buildConfig(
     configFile: options.configFile ?? null,
     server: {
       host: text("server.host", merged.server.host),
+      stateFolder: expandHome(text("server.stateFolder", merged.server.stateFolder)),
       port,
       allowedOrigins: [`http://localhost:${port}`, `http://127.0.0.1:${port}`, "http://localhost:5173", ...merged.server.allowedOrigins],
     },

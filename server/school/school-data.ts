@@ -7,6 +7,7 @@ import { driveStatus } from "../drive.ts";
 import { readSemesters } from "./grades.ts";
 import { computeCfcGrade } from "./cfc.ts";
 import { modulesByCode, pendingCoursePdfs, type ModuleRecord } from "./modules.ts";
+import { readDismissed, splitDismissed, withFingerprints, type ComputedTask } from "../tasks.ts";
 import { blocksOfDay, readPeriods, type Period } from "./schedule.ts";
 import type { AgendaEvent, Course, SchoolData, SchoolDay, SchoolModule, Semester, Task } from "../../shared/types.ts";
 
@@ -33,7 +34,7 @@ export function courseMapper(byCode: Map<string, Pick<ModuleRecord, "color" | "l
 }
 
 const severityOrder = { urgent: 0, warning: 1, info: 2 } as const;
-export const bySeverity = (a: Task, b: Task) => severityOrder[a.severity] - severityOrder[b.severity];
+export const bySeverity = (a: Pick<Task, "severity">, b: Pick<Task, "severity">) => severityOrder[a.severity] - severityOrder[b.severity];
 
 export function buildSchoolData(forcedDate?: string): SchoolData {
   const { school } = config();
@@ -60,7 +61,7 @@ export function buildSchoolData(forcedDate?: string): SchoolData {
     return gap >= -school.activeWindowDays.past && gap <= school.activeWindowDays.future;
   };
   const modules: SchoolModule[] = [...byCode.values()]
-    .map((m) => {
+    .map(({ notePath: _notePath, ...m }) => {
       const next = periods.find((p) => p.code === m.code && p.date >= today);
       return {
         ...m,
@@ -71,20 +72,22 @@ export function buildSchoolData(forcedDate?: string): SchoolData {
     .sort((a, b) => (a.nextCourse?.date ?? "9999").localeCompare(b.nextCourse?.date ?? "9999") || a.code.localeCompare(b.code));
 
   const semesters = readSemesters((code) => byCode.get(code)?.link ?? null);
+  const tasks = splitDismissed(withFingerprints(schoolTasks(today, modules, semesters, agenda)), readDismissed());
   return {
     generatedAt: new Date().toISOString(),
     today,
     week,
     modules,
-    tasks: schoolTasks(today, modules, semesters, agenda),
+    tasks: tasks.visible,
+    hiddenTasks: tasks.hidden,
     drive: driveStatus(),
     semesters,
     cfc: school.cfc.enabled ? computeCfcGrade(semesters, school.cfc) : null,
   };
 }
 
-function schoolTasks(today: string, modules: SchoolModule[], semesters: Semester[], agenda: AgendaEvent[]): Task[] {
-  const tasks: Task[] = [];
+function schoolTasks(today: string, modules: SchoolModule[], semesters: Semester[], agenda: AgendaEvent[]): ComputedTask[] {
+  const tasks: ComputedTask[] = [];
   const moduleLink = (code: string) => modules.find((m) => m.code === code)?.link;
 
   // Agenda: exam within 7 days (urgent), appointment today or tomorrow
@@ -137,6 +140,7 @@ function schoolTasks(today: string, modules: SchoolModule[], semesters: Semester
           severity: "warning",
           color: OVERDUE_COLOR,
           link: m.link,
+          tick: { module: m.code, exam: exam.name },
         });
       } else if (gap <= 7) {
         const toReview = m.sequences.filter((s) => !s.examDone);

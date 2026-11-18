@@ -169,7 +169,14 @@ function Cockpit() {
       );
     if (space === "today" && view === "calendar") return <CalendarView onChange={today.reload} />;
     if (space === "today" && view === "tasks")
-      return <TasksView tasks={today.data!.tasks} emptyText="Rien à faire : ni test proche, ni projet en retard." />;
+      return (
+        <TasksView
+          tasks={today.data!.tasks}
+          hiddenTasks={today.data!.hiddenTasks}
+          onChange={today.reload}
+          emptyText="Rien à faire : ni test proche, ni projet en retard."
+        />
+      );
     if (view === "journal" || view === "activity") {
       if (!activity.data) return <Loading error={activity.error} />;
       return view === "journal" ? (
@@ -185,6 +192,8 @@ function Cockpit() {
         return (
           <TasksView
             tasks={data.tasks}
+            hiddenTasks={data.hiddenTasks}
+            onChange={school.reload}
             emptyText="Rien à faire pour l'instant. Les tests à venir, les PDF à rédiger et les modules sans séquence apparaissent ici."
           />
         );

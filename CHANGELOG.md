@@ -4,6 +4,8 @@ Les versions suivent [SemVer](https://semver.org/lang/fr/) : `Y` pour une nouvel
 
 ## [Non publié]
 
+- Ajouté : « À faire » : bouton « Fait » qui masque une tâche jusqu'à ce qu'elle change (fichier d'état `server.stateFolder`), « Cocher » qui coche un test passé dans la note du module, liste des tâches masquées avec « Remettre ».
+
 ## [1.2.0] - 2026-11-18
 
 - Ajouté : dock avec le nom de la vue dans une bulle au survol (au lieu de l'infobulle du navigateur), icônes qui grossissent autour de la souris, une couleur pastel par rôle d'icône (la même dans tous les espaces), point sous la vue active.

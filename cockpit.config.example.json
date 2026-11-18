@@ -3,7 +3,8 @@
 // Variables d'environnement possibles : COCKPIT_CONFIG (autre fichier), COCKPIT_PORT, COCKPIT_VAULT.
 {
   "server": {
-    "port": 4321 // http://localhost:4321 (le serveur n'écoute qu'en local)
+    "port": 4321, // http://localhost:4321 (le serveur n'écoute qu'en local)
+    "stateFolder": "~/.local/state/cockpit" // petits fichiers d'état du Cockpit (tâches masquées), hors du vault
   },
   "locale": { "language": "fr-CH", "timeZone": "Europe/Zurich" },
 

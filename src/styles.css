@@ -719,6 +719,21 @@ code {
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.035);
 }
+.task .task-done {
+  flex-shrink: 0;
+}
+.hidden-tasks {
+  margin-top: 14px;
+}
+.hidden-tasks summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.task.muted-task {
+  opacity: 0.6;
+}
 .task .color-strip {
   width: 4px;
   align-self: stretch;

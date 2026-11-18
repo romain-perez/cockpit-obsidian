@@ -73,6 +73,8 @@ export interface Task {
   severity: Severity;
   color: string;
   link?: string;
+  fingerprint: string; // changes with the title or the detail: a hidden task comes back when it changes
+  tick?: { module: string; exam: string }; // "done" ticks this exam in the module note
 }
 
 export interface DriveFiles {
@@ -151,6 +153,7 @@ export interface SchoolData {
   week: SchoolDay[];
   modules: SchoolModule[];
   tasks: Task[];
+  hiddenTasks: Task[]; // marked as done by the user, until they change
   drive: DriveStatus;
   semesters: Semester[];
   cfc: CfcGrade | null;
@@ -312,6 +315,7 @@ export interface TodayData {
   school: SchoolData;
   projects: Project[];
   tasks: Task[];
+  hiddenTasks: Task[];
   journal: JournalEntry[];
 }
 
