@@ -1,0 +1,6 @@
+node_modules/
+dist/
+# personal configuration (template: cockpit.config.example.json)
+cockpit.config.json
+.vscode/
+.claude/
