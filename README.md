@@ -84,6 +84,10 @@ Le Cockpit crée deux calendriers (cours et perso) et les tient à jour ; un év
 Tant que l'application Google est en mode « test », le jeton expire après 7 jours : passer l'application en production (sans validation pour un usage personnel) pour ne plus avoir à se reconnecter.
 Fichiers dans `google.secretsFolder` (droits 600, jamais dans le vault ni dans le dépôt) : `google-client.json`, `google-token.json`, `google-calendars.json`, `google-phone-events.json`.
 
+## Widget pour la barre Caelestia (facultatif)
+
+Pour les bureaux Hyprland avec [Caelestia](https://github.com/caelestia-dots/shell) : une pastille dans la barre (cours en cours ou prochain cours, salle, examen) et une bulle de détails. Installation et fonctionnement : [`extras/caelestia`](extras/caelestia/README.md).
+
 ## Comment c'est construit
 
 ```
