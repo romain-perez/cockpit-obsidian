@@ -9,7 +9,6 @@ import { ActivityView, JournalView } from "./components/Activity.tsx";
 import { CalendarView } from "./components/Calendar.tsx";
 import { DriveView } from "./components/Drive.tsx";
 import { Carousel, DayStrip, TopBar } from "./components/Home.tsx";
-import { Icon } from "./components/Icon.tsx";
 import { PersonalFoldersView, RecentNotesView } from "./components/Personal.tsx";
 import { OtherFoldersView, ProjectsView } from "./components/Projects.tsx";
 import { Search } from "./components/Search.tsx";
@@ -221,14 +220,7 @@ function Cockpit() {
         items={docks[space]}
         active={view}
         onOpen={(id) => go({ space, view: id })}
-        extra={
-          <>
-            <span className="sep" />
-            <button onClick={() => setSearching(true)} title="Rechercher (/ ou Ctrl+K)" aria-label="Rechercher">
-              <Icon name="search" />
-            </button>
-          </>
-        }
+        actions={[{ id: "search", icon: "search", title: "Rechercher", hint: "/", onClick: () => setSearching(true) }]}
       />
       {searching && <Search onClose={() => setSearching(false)} />}
     </div>
