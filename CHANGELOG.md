@@ -4,12 +4,10 @@ Les versions suivent [SemVer](https://semver.org/lang/fr/) : `Y` pour une nouvel
 
 ## [Non publié]
 
-- Ajouté : option `--open-command` du widget de la barre (commande lancée au clic, par défaut ouvrir le Cockpit dans le navigateur).
-- Corrigé : un clic sur le widget de la barre ouvre bien le Cockpit (le clic était capté par la zone de souris de Caelestia) ; la bulle n'affiche plus « clic : ouvrir le Cockpit ».
-
-- Ajouté : widget facultatif pour la barre Caelestia (`extras/caelestia`) : pastille du cours en cours ou du prochain cours, salle, « Test » la veille d'un examen, bulle de détails ; surcouche du shell reconstruite automatiquement après une mise à jour, retour au shell d'origine en cas d'erreur ; route `GET /api/widget`.
+## [1.3.0] - 2026-11-18
 
 - Ajouté : « À faire » : bouton « Fait » qui masque une tâche jusqu'à ce qu'elle change (fichier d'état `server.stateFolder`), « Cocher » qui coche un test passé dans la note du module, liste des tâches masquées avec « Remettre ».
+- Ajouté : widget facultatif pour la barre Caelestia (`extras/caelestia`) : pastille du cours en cours ou du prochain cours, salle, « Test » la veille et le jour d'un examen, bulle de détails ; un clic ouvre le Cockpit ou lance une commande choisie (`--open-command`) ; surcouche du shell reconstruite automatiquement après une mise à jour, retour au shell d'origine en cas d'erreur, jamais de redémarrage quand la session est verrouillée ; route `GET /api/widget`.
 
 ## [1.2.0] - 2026-11-18
 
