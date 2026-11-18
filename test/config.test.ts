@@ -80,6 +80,18 @@ test("the public configuration contains no absolute path nor secret", () => {
   vault.cleanup();
 });
 
+test("drive.webUrl: optional https address, given to the interface", () => {
+  const vault = createTestVault();
+  const path = vault.config.vault.path;
+  assert.equal(buildConfig({ vault: { path } }).config.drive.webUrl, null);
+  const url = "https://drive.google.com/drive/folders/abc123";
+  const { config } = buildConfig({ vault: { path }, drive: { webUrl: url } });
+  assert.equal(publicConfig(config).drive.webUrl, url);
+  assert.throws(() => buildConfig({ vault: { path }, drive: { webUrl: "http://drive.google.com" } }), /drive.webUrl : adresse https/);
+  assert.throws(() => buildConfig({ vault: { path }, drive: { webUrl: "javascript:alert(1)" } }), /drive.webUrl/);
+  vault.cleanup();
+});
+
 test("expandHome only replaces a leading ~", () => {
   assert.ok(!expandHome("~/vault").startsWith("~"));
   assert.equal(expandHome("/a/~b"), "/a/~b");

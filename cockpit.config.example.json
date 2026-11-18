@@ -65,6 +65,7 @@
     "enabled": false,
     "command": "~/.local/bin/push-ecole",
     "remoteLabel": "gdrive:Classe/Moi",
+    "webUrl": null, // adresse du dossier dans le navigateur (bouton « Ouvrir dans Google Drive »), ex. "https://drive.google.com/drive/folders/…"
     "checkEveryMinutes": 15
   },
 

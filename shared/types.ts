@@ -10,7 +10,7 @@ export interface PublicConfig {
   agendaFile: string;
   gradesFile: string;
   projectsFolder: string;
-  drive: { enabled: boolean; remoteLabel: string; commandName: string };
+  drive: { enabled: boolean; remoteLabel: string; commandName: string; webUrl: string | null };
   google: { enabled: boolean; personalCalendar: string; coursesCalendar: string };
 }
 
