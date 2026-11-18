@@ -164,7 +164,7 @@ ColumnLayout {
     StyledText {
         visible: CockpitData.online
         Layout.topMargin: Tokens.spacing.small
-        text: `${root.info?.tasks ?? 0} tâche${(root.info?.tasks ?? 0) > 1 ? "s" : ""} · clic : ouvrir le Cockpit`
+        text: `${root.info?.tasks ?? 0} tâche${(root.info?.tasks ?? 0) > 1 ? "s" : ""}`
         font: Tokens.font.body.builders.small.scale(0.9).build()
         color: Colours.palette.m3onSurfaceVariant
     }
