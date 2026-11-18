@@ -36,6 +36,18 @@ export interface NonModuleCourse {
   note: string;
 }
 
+/** Final CFC grade (Swiss VET ordinance): weights of the qualification areas and how the experience grades are built. */
+export interface CfcSettings {
+  enabled: boolean;
+  weights: { practicalWork: number; generalEducation: number; itSkills: number; extendedBasics: number };
+  itSkillsShares: { schoolModules: number; interCompanyCourses: number };
+  interCompanyModules: string[]; // module codes graded as inter-company courses (CIE / üK)
+  generalEducationExempt: boolean; // exempted domains are not counted: the others keep their weights
+  extendedBasicsSubjects: Record<string, number>; // subject name in the grades note → weight in the semester grade
+  extendedBasicsSemesters: number;
+  targets: number[]; // final grades for which the required grade on the remaining domains is shown
+}
+
 export interface Config {
   configFile: string | null;
   server: { host: string; port: number; allowedOrigins: string[] };
@@ -67,6 +79,7 @@ export interface Config {
     neutralColor: string;
     fallbackColors: Record<string, string>;
     nonModuleCourses: Record<string, NonModuleCourse>;
+    cfc: CfcSettings;
   };
   schedule: {
     url: string | null;
@@ -144,6 +157,16 @@ const DEFAULTS = {
     neutralColor: "#94aca8",
     fallbackColors: {} as Record<string, string>,
     nonModuleCourses: {} as Record<string, NonModuleCourse>,
+    cfc: {
+      enabled: true,
+      weights: { practicalWork: 40, generalEducation: 20, itSkills: 30, extendedBasics: 10 },
+      itSkillsShares: { schoolModules: 80, interCompanyCourses: 20 },
+      interCompanyModules: [] as string[],
+      generalEducationExempt: false,
+      extendedBasicsSubjects: { Maths: 1, Anglais: 1 } as Record<string, number>,
+      extendedBasicsSemesters: 8,
+      targets: [4, 5, 5.5],
+    },
   },
   schedule: {
     url: null as string | null,
@@ -384,6 +407,35 @@ export function buildConfig(
       neutralColor: color("school.neutralColor", s.neutralColor),
       fallbackColors: Object.fromEntries(Object.entries(s.fallbackColors).map(([k, v]) => [k.toUpperCase(), v])),
       nonModuleCourses: s.nonModuleCourses,
+      cfc: {
+        enabled: !!s.cfc.enabled,
+        weights: {
+          practicalWork: positive("school.cfc.weights.practicalWork", s.cfc.weights.practicalWork),
+          generalEducation: positive("school.cfc.weights.generalEducation", s.cfc.weights.generalEducation),
+          itSkills: positive("school.cfc.weights.itSkills", s.cfc.weights.itSkills),
+          extendedBasics: positive("school.cfc.weights.extendedBasics", s.cfc.weights.extendedBasics),
+        },
+        itSkillsShares: {
+          schoolModules: positive("school.cfc.itSkillsShares.schoolModules", s.cfc.itSkillsShares.schoolModules),
+          interCompanyCourses: positive("school.cfc.itSkillsShares.interCompanyCourses", s.cfc.itSkillsShares.interCompanyCourses),
+        },
+        interCompanyModules: (Array.isArray(s.cfc.interCompanyModules) ? s.cfc.interCompanyModules : []).map((c) =>
+          String(c).toUpperCase(),
+        ),
+        generalEducationExempt: !!s.cfc.generalEducationExempt,
+        extendedBasicsSubjects: Object.fromEntries(
+          Object.entries(s.cfc.extendedBasicsSubjects ?? {}).map(([name, w]) => [
+            name,
+            positive(`school.cfc.extendedBasicsSubjects.${name}`, w),
+          ]),
+        ),
+        extendedBasicsSemesters: positive("school.cfc.extendedBasicsSemesters", s.cfc.extendedBasicsSemesters),
+        targets: (Array.isArray(s.cfc.targets) ? s.cfc.targets : []).map((target, i) => {
+          if (typeof target !== "number" || target < 1 || target > 6)
+            problems.push(`school.cfc.targets[${i}] : note entre 1 et 6 attendue`);
+          return Number(target);
+        }),
+      },
     },
     schedule: {
       url: sc.url,

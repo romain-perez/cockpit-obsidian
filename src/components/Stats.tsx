@@ -1,6 +1,6 @@
 // Stats view: exam grades per semester (grades note of the vault).
 import { useState } from "react";
-import type { SchoolData, Semester } from "../../shared/types.ts";
+import type { CfcGrade, SchoolData, Semester } from "../../shared/types.ts";
 import { useConfig } from "../config.tsx";
 import { Icon } from "./Icon.tsx";
 
@@ -47,6 +47,8 @@ export function StatsView({ data }: { data: SchoolData }) {
           moyenne des {semesters.length} semestres : {format(overall)}
         </span>
       </h2>
+
+      {data.cfc && <CfcCard cfc={data.cfc} />}
 
       <div className="semester-tiles">
         {semesters.map((s, i) => {
@@ -234,5 +236,75 @@ function Sparkline({ points }: { points: (number | null)[] }) {
         />
       ))}
     </svg>
+  );
+}
+
+/** Provisional final CFC grade: graded areas, grade needed on the remaining ones, assumptions. */
+function CfcCard({ cfc }: { cfc: CfcGrade }) {
+  const counted = cfc.domains.filter((d) => d.status !== "exempt");
+  return (
+    <div className="cfc-card">
+      <div className="cfc-main">
+        <span className="name">Note CFC provisoire</span>
+        <b style={{ color: cfc.provisional === null ? undefined : gradeColor(cfc.provisional) }}>
+          {cfc.provisional === null ? "–" : format(cfc.provisional)}
+        </b>
+        <span className="sub">{cfc.remaining ? `sans ${cfc.remaining}, pas encore noté` : "toutes les notes sont connues"}</span>
+      </div>
+
+      <ul className="cfc-domains">
+        {cfc.domains.map((d) => (
+          <li key={d.key} className={d.status}>
+            <span className="cfc-weight mono">{d.status === "exempt" ? "0 %" : `${format(d.weight)} %`}</span>
+            <div>
+              <b>
+                {d.label}
+                {d.eliminatory && <span className="pill">éliminatoire</span>}
+              </b>
+              <small>{d.detail}</small>
+            </div>
+            <span
+              className={`cfc-grade mono${d.grade === null ? " none" : ""}`}
+              style={{ color: d.grade === null ? undefined : gradeColor(d.grade) }}
+            >
+              {d.grade !== null ? format(d.grade) : d.status === "exempt" ? "dispensé" : "à venir"}
+            </span>
+          </li>
+        ))}
+      </ul>
+
+      {cfc.required.length > 0 && (
+        <div className="cfc-required">
+          <span className="name">Note nécessaire {cfc.remaining === "TPI" ? "au TPI" : `(${cfc.remaining})`}</span>
+          <div>
+            {cfc.required.map((r) => (
+              <span key={r.target} className={`cfc-target${r.grade === null ? " impossible" : ""}`}>
+                <small>pour finir à {format(r.target)}</small>
+                <b className="mono">{r.grade === null ? "impossible" : format(r.grade)}</b>
+                {r.alreadySure && <small>minimum du TPI</small>}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {cfc.warnings.map((w) => (
+        <p key={w} className="message error">
+          {w}
+        </p>
+      ))}
+      <details className="cfc-assumptions">
+        <summary>Comment c'est calculé</summary>
+        <ul>
+          <li>
+            Note finale = moyenne pondérée de {counted.map((d) => `${d.label.toLowerCase()} (${d.writtenWeight})`).join(", ")}, arrondie au
+            dixième ; moyennes des modules et des cours interentreprises arrondies à la demi-note.
+          </li>
+          {cfc.assumptions.map((a) => (
+            <li key={a}>{a}</li>
+          ))}
+        </ul>
+      </details>
+    </div>
   );
 }

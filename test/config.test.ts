@@ -92,6 +92,20 @@ test("drive.webUrl: optional https address, given to the interface", () => {
   vault.cleanup();
 });
 
+test("school.cfc: ordinance weights by default, invalid values refused", () => {
+  const vault = createTestVault();
+  const path = vault.config.vault.path;
+  const { cfc } = buildConfig({ vault: { path } }).config.school;
+  assert.deepEqual(cfc.weights, { practicalWork: 40, generalEducation: 20, itSkills: 30, extendedBasics: 10 });
+  assert.equal(cfc.generalEducationExempt, false);
+  const custom = buildConfig({ vault: { path }, school: { cfc: { interCompanyModules: ["m187"], generalEducationExempt: true } } }).config
+    .school.cfc;
+  assert.deepEqual(custom.interCompanyModules, ["M187"]);
+  assert.throws(() => buildConfig({ vault: { path }, school: { cfc: { weights: { itSkills: 0 } } } }), /school.cfc.weights.itSkills/);
+  assert.throws(() => buildConfig({ vault: { path }, school: { cfc: { targets: [7] } } }), /school.cfc.targets\[0\]/);
+  vault.cleanup();
+});
+
 test("expandHome only replaces a leading ~", () => {
   assert.ok(!expandHome("~/vault").startsWith("~"));
   assert.equal(expandHome("/a/~b"), "/a/~b");

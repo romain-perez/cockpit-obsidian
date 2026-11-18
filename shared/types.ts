@@ -115,6 +115,36 @@ export interface Semester {
   subjects: SubjectGrade[];
 }
 
+export type CfcDomainKey = "practicalWork" | "generalEducation" | "itSkills" | "extendedBasics";
+
+/** One qualification area of the final CFC grade. */
+export interface CfcDomain {
+  key: CfcDomainKey;
+  label: string; // "Travail pratique (TPI)"
+  writtenWeight: number; // weight in the ordinance, in %
+  weight: number; // real share of the final grade, in % (exempted areas removed)
+  grade: number | null; // null: not graded yet (or exempted)
+  status: "known" | "pending" | "exempt";
+  eliminatory: boolean; // must be at least 4
+  detail: string; // "modules 5 (14 modules), CIE 5.5 (4 modules)"
+}
+
+/** Grade needed on the domains not graded yet to finish with a target final grade. */
+export interface CfcRequirement {
+  target: number;
+  grade: number | null; // null: impossible (more than 6 needed)
+  alreadySure: boolean; // reached even with the minimum grade
+}
+
+export interface CfcGrade {
+  provisional: number | null; // weighted mean of the graded domains, rounded to a tenth
+  domains: CfcDomain[];
+  remaining: string; // "TPI" or "TPI et culture générale"
+  required: CfcRequirement[];
+  warnings: string[];
+  assumptions: string[];
+}
+
 export interface SchoolData {
   generatedAt: string;
   today: string;
@@ -123,6 +153,7 @@ export interface SchoolData {
   tasks: Task[];
   drive: DriveStatus;
   semesters: Semester[];
+  cfc: CfcGrade | null;
 }
 
 // ---------------------------------------------------------------- projects

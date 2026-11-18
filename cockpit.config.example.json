@@ -33,6 +33,17 @@
     "nonModuleCourses": {
       // cours sans module : nom affiché + note ouverte au clic
       "MATH": { "label": "Maths", "note": "École/Maths/Maths.md" }
+    },
+    "cfc": {
+      // note CFC provisoire (vue Stats) : poids de l'ordonnance de formation (informaticien·ne CFC, art. 19)
+      "enabled": true,
+      "weights": { "practicalWork": 40, "generalEducation": 20, "itSkills": 30, "extendedBasics": 10 },
+      "itSkillsShares": { "schoolModules": 80, "interCompanyCourses": 20 },
+      "interCompanyModules": ["M106", "M187", "M216", "M294", "M295"], // modules notés comme cours interentreprises (CIE / üK)
+      "generalEducationExempt": false, // true si dispensé de culture générale (déjà titulaire d'un CFC) : elle n'est pas comptée
+      "extendedBasicsSubjects": { "Maths": 1, "Anglais": 1 }, // branches du domaine « compétences de base élargies » et leur poids
+      "extendedBasicsSemesters": 8,
+      "targets": [4, 5, 5.5] // notes finales visées : le Cockpit affiche la note nécessaire au TPI
     }
   },
 
