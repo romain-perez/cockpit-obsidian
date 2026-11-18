@@ -10,6 +10,7 @@
 //   GET  /api/schedule                  source of the course schedule
 //   GET  /api/drive                     Drive status + upload in progress (live output)
 //   GET  /api/google                    Google sync status; /connect → OAuth consent; /callback ← Google's answer
+//   GET  /api/widget                    compact data for the desktop bar widget (extras/caelestia)
 //   POST /api/agenda                    { date, start, end, type: "appointment"|"exam", title, place, module, note }
 //   POST /api/agenda/update             { id, date, start, end, type, title, place, module, note }
 //   POST /api/agenda/remove             { id }
@@ -50,6 +51,7 @@ const { allowedFolders, buildProjects } = await import("./projects/projects.ts")
 const { buildSchoolData } = await import("./school/school-data.ts");
 const { refreshSchedule, scheduleSource } = await import("./school/schedule.ts");
 const { buildToday } = await import("./today.ts");
+const { buildWidget } = await import("./widget.ts");
 const { dismissTask, restoreTask } = await import("./tasks.ts");
 const { tickExam } = await import("./school/modules.ts");
 const { buildActivity } = await import("./vault/journal.ts");
@@ -142,6 +144,9 @@ async function handleGet(url: URL, res: ServerResponse): Promise<boolean> {
       return true;
     case "/api/drive":
       sendJson(res, { status: driveStatus(), upload: uploadStatus() });
+      return true;
+    case "/api/widget":
+      sendJson(res, await buildWidget());
       return true;
     case "/api/google":
       sendJson(res, googleStatus());

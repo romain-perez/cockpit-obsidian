@@ -337,3 +337,27 @@ export interface ScheduleSource {
   updatedAt: string | null;
   error: string | null;
 }
+
+// ---------------------------------------------------------------- desktop bar widget
+
+export interface WidgetCourse {
+  code: string;
+  label: string; // "M295", "Maths"
+  date: string;
+  day: string; // "aujourd'hui", "demain", "ven. 20"
+  start: string;
+  end: string;
+  room: string;
+  roomShort: string; // "F119"
+  teacher: string;
+  color: string;
+}
+
+export interface WidgetData {
+  now: (WidgetCourse & { progress: number; remainingMinutes: number }) | null; // course in progress
+  next: WidgetCourse | null; // next course after the current one (or the next one if none in progress)
+  following: WidgetCourse[]; // the courses after the first one shown
+  exam: { title: string; date: string; day: string; inDays: number } | null; // within 7 days
+  tasks: number;
+  url: string; // address of the Cockpit
+}

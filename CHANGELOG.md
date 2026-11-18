@@ -4,6 +4,8 @@ Les versions suivent [SemVer](https://semver.org/lang/fr/) : `Y` pour une nouvel
 
 ## [Non publié]
 
+- Ajouté : widget facultatif pour la barre Caelestia (`extras/caelestia`) : pastille du cours en cours ou du prochain cours, salle, « Test » la veille d'un examen, bulle de détails ; surcouche du shell reconstruite automatiquement après une mise à jour, retour au shell d'origine en cas d'erreur ; route `GET /api/widget`.
+
 - Ajouté : « À faire » : bouton « Fait » qui masque une tâche jusqu'à ce qu'elle change (fichier d'état `server.stateFolder`), « Cocher » qui coche un test passé dans la note du module, liste des tâches masquées avec « Remettre ».
 
 ## [1.2.0] - 2026-11-18
