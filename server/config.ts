@@ -95,7 +95,7 @@ export interface Config {
     archivedStatusPattern: RegExp;
     sheetSuffix: string; // removed from the sheet file name to get the project name
   };
-  drive: { enabled: boolean; command: string; remoteLabel: string; checkEveryMinutes: number };
+  drive: { enabled: boolean; command: string; remoteLabel: string; webUrl: string | null; checkEveryMinutes: number };
   desktop: {
     enabled: boolean; // Hyprland window handling (only if HYPRLAND_INSTANCE_SIGNATURE is set)
     launcher: string; // prefix used to start apps through Hyprland, e.g. "app2unit --"
@@ -172,7 +172,7 @@ const DEFAULTS = {
     archivedStatusPattern: "archiv",
     sheetSuffix: " — contexte",
   },
-  drive: { enabled: false, command: "", remoteLabel: "", checkEveryMinutes: 15 },
+  drive: { enabled: false, command: "", remoteLabel: "", webUrl: null as string | null, checkEveryMinutes: 15 },
   desktop: {
     enabled: true,
     launcher: "app2unit --",
@@ -280,6 +280,17 @@ export function buildConfig(
   const text = (key: string, value: unknown, required = true): string => {
     if (typeof value !== "string" || (required && !value.trim())) problems.push(`${key} : texte attendu`);
     return typeof value === "string" ? value : "";
+  };
+  /** Optional web address: null or an https:// URL. */
+  const httpsUrl = (key: string, value: unknown): string | null => {
+    if (value === null || value === undefined || value === "") return null;
+    try {
+      if (typeof value === "string" && new URL(value).protocol === "https:") return value;
+    } catch {
+      /* reported below */
+    }
+    problems.push(`${key} : adresse https:// attendue, ou null`);
+    return null;
   };
   const color = (key: string, value: unknown): string => {
     if (typeof value !== "string" || !/^#[0-9a-f]{6}$/i.test(value)) problems.push(`${key} : couleur au format #RRGGBB attendue`);
@@ -398,6 +409,7 @@ export function buildConfig(
       enabled: !!drive.enabled,
       command: drive.command,
       remoteLabel: String(drive.remoteLabel ?? ""),
+      webUrl: httpsUrl("drive.webUrl", drive.webUrl),
       checkEveryMinutes: positive("drive.checkEveryMinutes", drive.checkEveryMinutes),
     },
     desktop: {
@@ -474,7 +486,12 @@ export function publicConfig(c: Config = config()): PublicConfig {
     agendaFile: c.vault.agendaFile,
     gradesFile: c.vault.gradesFile,
     projectsFolder: c.vault.projectsFolder,
-    drive: { enabled: c.drive.enabled, remoteLabel: c.drive.remoteLabel, commandName: basename(c.drive.command || "") },
+    drive: {
+      enabled: c.drive.enabled,
+      remoteLabel: c.drive.remoteLabel,
+      commandName: basename(c.drive.command || ""),
+      webUrl: c.drive.webUrl,
+    },
     google: {
       enabled: c.google.enabled,
       personalCalendar: c.google.calendars.personal.name,

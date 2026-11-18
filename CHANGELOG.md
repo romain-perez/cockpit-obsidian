@@ -4,6 +4,8 @@ Les versions suivent [SemVer](https://semver.org/lang/fr/) : `Y` pour une nouvel
 
 ## [Non publié]
 
+- Ajouté : bouton « Ouvrir dans Google Drive » dans la vue Drive, vers l'adresse de la nouvelle option `drive.webUrl` (facultative).
+
 ## [1.0.1] - 2026-11-18
 
 - Vérification automatique des pull requests (GitHub Actions : types, Prettier, tests, build sur Node 24 et 26).

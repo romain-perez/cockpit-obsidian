@@ -193,6 +193,11 @@ export function DriveView({ onUploaded }: { onUploaded?: () => void }) {
             </button>
           </span>
         )}
+        {settings.webUrl && (
+          <a className="button" href={settings.webUrl} target="_blank" rel="noreferrer">
+            <Icon name="external" size={14} /> Ouvrir dans Google Drive
+          </a>
+        )}
       </div>
       {error && <p className="message error">{error}</p>}
 
