@@ -11,6 +11,12 @@ export function Search({ onClose }: { onClose: () => void }) {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [selected, setSelected] = useState(0);
   const input = useRef<HTMLInputElement>(null);
+  const list = useRef<HTMLUListElement>(null);
+
+  // Keep the selected result visible when moving with the arrow keys
+  useEffect(() => {
+    list.current?.children[selected]?.scrollIntoView({ block: "nearest" });
+  }, [selected]);
 
   useEffect(() => input.current?.focus(), []);
   useEffect(() => {
@@ -60,7 +66,7 @@ export function Search({ onClose }: { onClose: () => void }) {
           <kbd>Échap</kbd>
         </label>
         {query.trim().length >= 2 && results.length === 0 && <p className="muted empty">Aucun résultat pour « {query} ».</p>}
-        <ul className="results">
+        <ul className="results" ref={list}>
           {results.map((r, i) => (
             <li key={r.path} className={i === selected ? "on" : ""} onMouseEnter={() => setSelected(i)} onClick={() => open(r)}>
               <div className="title">

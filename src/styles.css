@@ -1576,8 +1576,9 @@ code {
 .search {
   width: min(760px, 100%);
   max-height: 72vh;
-  display: grid;
-  grid-template-rows: auto auto 1fr auto;
+  /* column: field, optional message, scrolling results, hint */
+  display: flex;
+  flex-direction: column;
   border-radius: 20px;
   background: rgba(14, 30, 33, 0.96);
   border: 1px solid var(--line);
@@ -1606,6 +1607,9 @@ code {
   margin: 0;
 }
 .results {
+  flex: 1;
+  min-height: 0;
+  overscroll-behavior: contain;
   list-style: none;
   margin: 0;
   padding: 8px;

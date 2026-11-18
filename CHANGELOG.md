@@ -4,6 +4,8 @@ Les versions suivent [SemVer](https://semver.org/lang/fr/) : `Y` pour une nouvel
 
 ## [Non publié]
 
+- Corrigé : la liste des résultats de la recherche défile (molette et flèches ↑ ↓) au lieu de déborder.
+
 - Dock : nom de la vue dans une bulle au survol (au lieu de l'infobulle du navigateur), icônes qui grossissent autour de la souris, une couleur pastel par rôle d'icône (la même dans tous les espaces), point sous la vue active.
 
 ## [1.1.0] - 2026-11-18
