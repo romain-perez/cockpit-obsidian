@@ -2187,3 +2187,18 @@ code {
   color: var(--green);
   border-color: rgba(74, 222, 128, 0.45);
 }
+/* Projects: other code folders grouped by code root */
+.folder-group {
+  display: grid;
+  gap: 8px;
+}
+.folder-group + .folder-group {
+  margin-top: 14px;
+}
+.folder-group h3 {
+  margin: 0;
+  font: 600 14px var(--font-title);
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}

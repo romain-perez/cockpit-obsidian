@@ -173,6 +173,12 @@ export interface CodeFolder {
   name: string;
   git: GitStatus | null;
   modifiedAt: string;
+  group: string | null; // folders without a project sheet: group of their code root ("École", "Privé"…)
+}
+
+export interface CodeFolderGroup {
+  name: string;
+  folders: CodeFolder[];
 }
 
 export interface Project {
@@ -191,6 +197,7 @@ export interface Project {
 export interface ProjectsData {
   projects: Project[];
   otherFolders: CodeFolder[];
+  otherFolderGroups: CodeFolderGroup[]; // same folders, by code root, in the order of the configuration
 }
 
 // ---------------------------------------------------------------- vault, personal, journal, search

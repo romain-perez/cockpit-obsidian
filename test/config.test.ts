@@ -106,6 +106,24 @@ test("school.cfc: ordinance weights by default, invalid values refused", () => {
   vault.cleanup();
 });
 
+test("code roots: group name from the configuration, or the folder name", () => {
+  const vault = createTestVault();
+  const roots = buildConfig({
+    vault: { path: vault.config.vault.path },
+    projects: {
+      codeRoots: [
+        { path: "/tmp/school", depth: 2, group: "École" },
+        { path: "/tmp/github", depth: 1 },
+      ],
+    },
+  }).config.projects.codeRoots;
+  assert.deepEqual(
+    roots.map((r) => r.group),
+    ["École", "github"],
+  );
+  vault.cleanup();
+});
+
 test("expandHome only replaces a leading ~", () => {
   assert.ok(!expandHome("~/vault").startsWith("~"));
   assert.equal(expandHome("/a/~b"), "/a/~b");
