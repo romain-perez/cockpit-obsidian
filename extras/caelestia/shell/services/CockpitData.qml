@@ -9,6 +9,8 @@ Singleton {
 
     // Address of the Cockpit, written by caelestia-overlay.py (--url)
     readonly property string url: "@COCKPIT_URL@"
+    // Command run on click, written by caelestia-overlay.py (--open-command); default: open the address in the browser
+    readonly property var openCommand: @COCKPIT_OPEN_COMMAND@
     readonly property int refreshMs: 60000
 
     property var info: null
@@ -37,7 +39,7 @@ Singleton {
     }
 
     function open(): void {
-        Quickshell.execDetached(["xdg-open", root.url]);
+        Quickshell.execDetached(root.openCommand);
     }
 
     Timer {

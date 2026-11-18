@@ -83,7 +83,11 @@ StyledRect {
         }
     }
 
-    TapHandler {
-        onTapped: CockpitData.open()
+    // A MouseArea like the bar logo: the drawers' mouse area takes the press before a TapHandler would get it.
+    // No hoverEnabled, so hovering still reaches the bar and opens the popout.
+    MouseArea {
+        anchors.fill: parent
+        cursorShape: Qt.PointingHandCursor
+        onClicked: CockpitData.open()
     }
 }
