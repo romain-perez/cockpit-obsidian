@@ -2,6 +2,8 @@
 //   final = weighted mean of the qualification areas, rounded to a tenth
 //   IT skills = 80 % school modules + 20 % inter-company courses, each average rounded to a half grade, result to a tenth
 //   extended basics (maths + English) = mean of the semester grades, rounded to a half grade
+// Like the school (ISA, bulletins), every module grade and every subject / semester grade is a whole or half grade
+// (VET ordinance OFPr art. 34: only averages may have decimals).
 // Exempted areas are not counted: the other areas keep their weights and the mean is taken over them.
 // Pure module: used by school-data.ts and by the tests.
 import type { CfcSettings } from "../config.ts";
@@ -31,7 +33,7 @@ interface ModuleGrade {
   semesters: number;
 }
 
-/** One grade per module code (a module graded over two semesters gets the mean of both). */
+/** One grade per module code, rounded to a half grade (a module graded over two semesters gets the mean of both). */
 export function moduleGrades(semesters: Semester[]): ModuleGrade[] {
   const byCode = new Map<string, { grades: number[]; inProgress: boolean }>();
   for (const semester of semesters)
@@ -42,10 +44,15 @@ export function moduleGrades(semesters: Semester[]): ModuleGrade[] {
       entry.inProgress ||= !subject.final;
       byCode.set(subject.code, entry);
     }
-  return [...byCode].map(([code, e]) => ({ code, grade: mean(e.grades), inProgress: e.inProgress, semesters: e.grades.length }));
+  return [...byCode].map(([code, e]) => ({
+    code,
+    grade: roundToHalf(mean(e.grades)),
+    inProgress: e.inProgress,
+    semesters: e.grades.length,
+  }));
 }
 
-/** Semester grades of the "extended basics" area (maths + English), combined with the configured weights. */
+/** Semester grades of the "extended basics" area: each subject rounded to a half grade, combined with the configured weights, rounded again. */
 export function extendedBasicsGrades(semesters: Semester[], subjects: Record<string, number>): { grades: number[]; incomplete: string[] } {
   const weightOf = new Map(Object.entries(subjects).map(([name, w]) => [name.toLowerCase(), w]));
   const grades: number[] = [];
@@ -54,7 +61,7 @@ export function extendedBasicsGrades(semesters: Semester[], subjects: Record<str
     const parts = semester.subjects.filter((s) => weightOf.has(s.subject.toLowerCase()));
     if (!parts.length) continue;
     const total = parts.reduce((sum, s) => sum + weightOf.get(s.subject.toLowerCase())!, 0);
-    grades.push(parts.reduce((sum, s) => sum + s.average * weightOf.get(s.subject.toLowerCase())!, 0) / total);
+    grades.push(roundToHalf(parts.reduce((sum, s) => sum + roundToHalf(s.average) * weightOf.get(s.subject.toLowerCase())!, 0) / total));
     if (parts.length < weightOf.size) incomplete.push(`${semester.name} (seulement ${parts.map((s) => s.subject).join(", ")})`);
   }
   return { grades, incomplete };
