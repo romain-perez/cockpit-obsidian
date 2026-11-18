@@ -6,6 +6,7 @@ Les versions suivent [SemVer](https://semver.org/lang/fr/) : `Y` pour une nouvel
 
 - Vérification automatique des pull requests (GitHub Actions : types, Prettier, tests, build sur Node 24 et 26).
 - `CONTRIBUTING.md`, modèle de pull request, `CHANGELOG.md`.
+- Corrigé : le bouton « KB » d'une carte de projet pouvait ouvrir une autre note qui avait le même titre affiché ; le lien est maintenant résolu comme dans Obsidian (nom de fichier, puis chemin, puis titre).
 
 ## [1.0.0] - 2026-11-18
 
