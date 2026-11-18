@@ -40,10 +40,19 @@ test("rounding rules of the ordinance", () => {
   assert.equal(roundToTenth(4.849), 4.8);
 });
 
+test("module grades are whole or half grades, like on the school report", () => {
+  assert.deepEqual(
+    moduleGrades([semester("S1", [subject("M319", 4.8), subject("M162", 5.17), subject("M346", 4.53), subject("M231", 5.31)])]).map(
+      (m) => m.grade,
+    ),
+    [5, 5, 4.5, 5.5],
+  );
+});
+
 test("a module graded over two semesters counts once, with the mean of both", () => {
   const modules = moduleGrades([semester("S1", [subject("M293", 5.2)]), semester("S2", [subject("M293", 5.0, false)])]);
   assert.equal(modules.length, 1);
-  assert.equal(modules[0].grade, 5.1);
+  assert.equal(modules[0].grade, 5); // mean 5.1 → 5
   assert.equal(modules[0].inProgress, true);
 });
 
@@ -60,7 +69,12 @@ test("maths + English: one grade per semester, missing subjects reported", () =>
   assert.deepEqual(incomplete, ["S2 (seulement maths)"]);
   assert.deepEqual(
     extendedBasicsGrades([semester("S1", [subject("Maths", 4), subject("Anglais", 6)])], { Maths: 120, Anglais: 200 }).grades,
-    [5.25],
+    [5.5],
+  );
+  // ISA, 1st year semester 2: maths 5.03 → 5.0, English 5.5 → semester 5.25 → 5.5
+  assert.deepEqual(
+    extendedBasicsGrades([semester("S2", [subject("Maths", 5.03), subject("Anglais", 5.5)])], { Maths: 1, Anglais: 1 }).grades,
+    [5.5],
   );
 });
 

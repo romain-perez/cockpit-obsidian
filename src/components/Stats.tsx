@@ -298,7 +298,8 @@ function CfcCard({ cfc }: { cfc: CfcGrade }) {
         <ul>
           <li>
             Note finale = moyenne pondérée de {counted.map((d) => `${d.label.toLowerCase()} (${d.writtenWeight})`).join(", ")}, arrondie au
-            dixième ; moyennes des modules et des cours interentreprises arrondies à la demi-note.
+            dixième ; comme à l'école, chaque note de module et chaque note semestrielle de maths + anglais est arrondie à la demi-note,
+            ainsi que les moyennes des modules et des cours interentreprises.
           </li>
           {cfc.assumptions.map((a) => (
             <li key={a}>{a}</li>

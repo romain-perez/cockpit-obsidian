@@ -4,6 +4,8 @@ Les versions suivent [SemVer](https://semver.org/lang/fr/) : `Y` pour une nouvel
 
 ## [Non publié]
 
+- Corrigé : note CFC, chaque note de module et chaque note semestrielle de maths + anglais est arrondie à la demi-note avant les moyennes, comme sur les bulletins et ISA.
+
 - Ajouté : **note CFC provisoire** dans la vue Stats (calcul de l'ordonnance : domaines, arrondis, notes éliminatoires, dispense de culture générale) et note nécessaire au TPI pour 4, 5 et 5,5 ; nouvelle section de configuration `school.cfc`.
 
 - Ajouté : bouton « Ouvrir dans Google Drive » dans la vue Drive, vers l'adresse de la nouvelle option `drive.webUrl` (facultative).
