@@ -4,15 +4,13 @@ Les versions suivent [SemVer](https://semver.org/lang/fr/) : `Y` pour une nouvel
 
 ## [Non publié]
 
-- Ajouté : onglets Activité et Activité git en tableau de bord : chiffres clés (notes, commits, jours actifs, série en cours, jour le plus actif), grilles agrandies, projets les plus actifs, derniers commits.
+## [1.2.0] - 2026-11-18
 
-- Ajouté : « Autres dossiers de code » classés par groupe (un par dossier racine, nom réglable avec `projects.codeRoots[].group`).
-
+- Ajouté : dock avec le nom de la vue dans une bulle au survol (au lieu de l'infobulle du navigateur), icônes qui grossissent autour de la souris, une couleur pastel par rôle d'icône (la même dans tous les espaces), point sous la vue active.
 - Ajouté : bouton « Modifier » dans le calendrier pour les rendez-vous et examens de l'agenda (route `POST /api/agenda/update`) ; un événement créé sur le téléphone et modifié dans le Cockpit est ensuite géré par le Cockpit (l'original est retiré de Google à la synchro suivante).
-
+- Ajouté : onglets Activité et Activité git en tableau de bord : chiffres clés (notes, commits, jours actifs, série en cours, jour le plus actif), grilles agrandies, projets les plus actifs, derniers commits.
+- Ajouté : « Autres dossiers de code » classés par groupe (un par dossier racine, nom réglable avec `projects.codeRoots[].group`).
 - Corrigé : la liste des résultats de la recherche défile (molette et flèches ↑ ↓) au lieu de déborder.
-
-- Dock : nom de la vue dans une bulle au survol (au lieu de l'infobulle du navigateur), icônes qui grossissent autour de la souris, une couleur pastel par rôle d'icône (la même dans tous les espaces), point sous la vue active.
 
 ## [1.1.0] - 2026-11-18
 
