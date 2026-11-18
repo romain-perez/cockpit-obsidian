@@ -138,6 +138,10 @@ npm run check        # typecheck + format:check + tests
 `POST` : `/api/agenda`, `/api/agenda/remove`, `/api/open-note`, `/api/open-folder`, `/api/google/sync`, `/api/drive/check`, `/api/drive/upload`.
 Les paramètres sont décrits en tête de [`server/main.ts`](server/main.ts).
 
+## Contribuer
+
+Règles du code et chemin d'une nouvelle fonctionnalité : [CONTRIBUTING.md](CONTRIBUTING.md). Historique des versions : [CHANGELOG.md](CHANGELOG.md).
+
 ## Licence
 
 [MIT](LICENSE) © 2026 Romain Perez
