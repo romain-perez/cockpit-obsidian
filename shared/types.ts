@@ -166,6 +166,7 @@ export interface GitStatus {
   unpushed: number | null; // null: no upstream branch
   remote: string | null;
   commitsPerDay: Record<string, number>;
+  recentCommits: { at: string; message: string }[]; // last commits of the 90 days, without merges (at = ISO date-time)
 }
 
 export interface CodeFolder {
@@ -235,9 +236,26 @@ export interface ActivityDay {
   commits: number;
 }
 
+/** Commits of one project (or code folder without a sheet) over the 90 days. */
+export interface ProjectActivity {
+  name: string;
+  color: string;
+  commits: number;
+  link: string | null; // project sheet
+}
+
+export interface CommitEntry {
+  at: string; // ISO date-time
+  project: string;
+  color: string;
+  message: string;
+}
+
 export interface ActivityData {
   journal: JournalEntry[];
   days: ActivityDay[];
+  projects: ProjectActivity[]; // most active first, only those with commits
+  commits: CommitEntry[]; // most recent first
 }
 
 export type VaultArea = "school" | "assistant" | "personal" | "other";
