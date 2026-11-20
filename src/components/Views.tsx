@@ -109,7 +109,7 @@ export function TasksView({
       </ul>
       {hiddenTasks.length > 0 && (
         <details className="hidden-tasks">
-          <summary>{plural(hiddenTasks.length, "tâche masquée", "tâches masquées")} (elles reviennent si elles changent)</summary>
+          <summary>{plural(hiddenTasks.length, "tâche masquée", "tâches masquées")}</summary>
           <ul className="task-list">
             {hiddenTasks.map((t) => (
               <li key={t.id} className="task info muted-task">
