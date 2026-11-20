@@ -4,6 +4,8 @@ Les versions suivent [SemVer](https://semver.org/lang/fr/) : `Y` pour une nouvel
 
 ## [Non publié]
 
+## [1.3.1] - 2026-11-20
+
 - Corrigé : après un démarrage du PC, les boutons qui ouvrent une note dans Obsidian ou un dossier dans l'éditeur ne faisaient rien (le service démarrait avant Hyprland) ; le Cockpit trouve maintenant l'instance de Hyprland en cours à chaque clic.
 
 ## [1.3.0] - 2026-11-18
