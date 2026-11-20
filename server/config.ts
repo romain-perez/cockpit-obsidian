@@ -111,7 +111,7 @@ export interface Config {
   };
   drive: { enabled: boolean; command: string; remoteLabel: string; webUrl: string | null; checkEveryMinutes: number };
   desktop: {
-    enabled: boolean; // Hyprland window handling (only if HYPRLAND_INSTANCE_SIGNATURE is set)
+    enabled: boolean; // Hyprland window handling (when a running Hyprland instance is found)
     launcher: string; // prefix used to start apps through Hyprland, e.g. "app2unit --"
     obsidian: { command: string; windowClass: string; workspace: number | null };
     editor: { command: string; windowClass: string };

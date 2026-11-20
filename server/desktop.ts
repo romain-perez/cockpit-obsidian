@@ -2,26 +2,72 @@
 // Apps are started THROUGH Hyprland (like a keyboard shortcut) so they inherit the session environment:
 // started directly by this service, an Electron app ran under XWayland (tiny UI, window rules ignored).
 import { execFile, spawn } from "node:child_process";
+import { readdirSync, statSync } from "node:fs";
+import { join } from "node:path";
 import { config } from "./config.ts";
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-export const hyprlandAvailable = (): boolean => config().desktop.enabled && !!process.env.HYPRLAND_INSTANCE_SIGNATURE;
 
-/** Sends a Lua command to Hyprland (hyprctl dispatch, Hyprland ≥ 0.57). */
-function hyprland(lua: string): Promise<string> {
-  return new Promise((resolve) => execFile("hyprctl", ["dispatch", lua], { timeout: 3000 }, (_e, out) => resolve(String(out ?? ""))));
+export interface HyprlandInstance {
+  signature: string; // folder name in $XDG_RUNTIME_DIR/hypr
+  alive: boolean; // its control socket exists
+  started: number; // time of the socket (ms), the newest instance wins
 }
 
-function windowExists(classPattern: string): Promise<boolean> {
+/**
+ * Hyprland instance to talk to: the one inherited from the environment if it is still running, else the newest one.
+ * The service can start before Hyprland (at boot, without HYPRLAND_INSTANCE_SIGNATURE) or outlive it (Hyprland restarted).
+ */
+export function pickHyprlandInstance(inherited: string | undefined, instances: HyprlandInstance[]): string | null {
+  const alive = instances.filter((instance) => instance.alive);
+  if (inherited && alive.some((instance) => instance.signature === inherited)) return inherited;
+  return alive.sort((a, b) => b.started - a.started)[0]?.signature ?? null;
+}
+
+/** Looks for the running Hyprland instance at each call (cheap: one small folder). */
+function hyprlandInstance(): string | null {
+  const runtime = process.env.XDG_RUNTIME_DIR;
+  if (!runtime) return null;
+  const folder = join(runtime, "hypr");
+  let names: string[];
+  try {
+    names = readdirSync(folder);
+  } catch {
+    return null;
+  }
+  const instances = names.map((signature): HyprlandInstance => {
+    try {
+      const socket = statSync(join(folder, signature, ".socket.sock"));
+      return { signature, alive: socket.isSocket(), started: socket.mtimeMs };
+    } catch {
+      return { signature, alive: false, started: 0 };
+    }
+  });
+  return pickHyprlandInstance(process.env.HYPRLAND_INSTANCE_SIGNATURE, instances);
+}
+
+export const hyprlandAvailable = (): boolean => config().desktop.enabled && hyprlandInstance() !== null;
+
+/** Runs hyprctl against the running instance; resolves with its output (empty on failure). */
+function hyprctl(args: string[]): Promise<{ failed: boolean; out: string }> {
+  const signature = hyprlandInstance();
+  if (!signature) return Promise.resolve({ failed: true, out: "" });
+  const env = { ...process.env, HYPRLAND_INSTANCE_SIGNATURE: signature };
   return new Promise((resolve) =>
-    execFile("hyprctl", ["clients", "-j"], { timeout: 3000 }, (_e, out) => {
-      try {
-        resolve((JSON.parse(String(out)) as { class: string }[]).some((w) => new RegExp(classPattern).test(w.class)));
-      } catch {
-        resolve(false);
-      }
-    }),
+    execFile("hyprctl", args, { timeout: 3000, env }, (error, out) => resolve({ failed: !!error, out: String(out ?? "") })),
   );
+}
+
+/** Sends a Lua command to Hyprland (hyprctl dispatch, Hyprland ≥ 0.57). */
+const hyprland = (lua: string): Promise<string> => hyprctl(["dispatch", lua]).then(({ out }) => out);
+
+async function windowExists(classPattern: string): Promise<boolean> {
+  const { out } = await hyprctl(["clients", "-j"]);
+  try {
+    return (JSON.parse(out) as { class: string }[]).some((w) => new RegExp(classPattern).test(w.class));
+  } catch {
+    return false;
+  }
 }
 
 /** Escapes a string for a Lua double-quoted string. */
@@ -39,14 +85,9 @@ function focusWindow(classPattern: string, attempt = 1): void {
   if (!hyprlandAvailable()) return;
   setTimeout(
     () => {
-      execFile(
-        "hyprctl",
-        ["dispatch", `hl.dsp.focus({ window = "${luaString(`class:${classPattern}`)}" })`],
-        { timeout: 3000 },
-        (error, out) => {
-          if ((error || /warning|error/i.test(out)) && attempt < 2) focusWindow(classPattern, attempt + 1);
-        },
-      );
+      void hyprctl(["dispatch", `hl.dsp.focus({ window = "${luaString(`class:${classPattern}`)}" })`]).then(({ failed, out }) => {
+        if ((failed || /warning|error/i.test(out)) && attempt < 2) focusWindow(classPattern, attempt + 1);
+      });
     },
     attempt === 1 ? 350 : 1800,
   );
