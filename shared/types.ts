@@ -280,6 +280,7 @@ export interface AgendaEvent {
   date: string;
   start: string; // "" = whole day
   end: string;
+  endDate: string; // last day of an event over several days ("" = same day as date)
   type: AgendaEventType;
   title: string;
   place: string;

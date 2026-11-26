@@ -2,7 +2,7 @@
 import { config } from "./config.ts";
 import { addDays, daysBetween } from "./core/dates.ts";
 import { obsidianLink } from "./core/markdown.ts";
-import { readAgenda } from "./agenda.ts";
+import { coversDate, readAgenda } from "./agenda.ts";
 import { modulesByCode } from "./school/modules.ts";
 import { blocksOfDay, readPeriods } from "./school/schedule.ts";
 import { courseMapper, EXAM_COLOR } from "./school/school-data.ts";
@@ -50,7 +50,7 @@ export function buildCalendar(from: string, to: string): CalendarData {
       date,
       courses: blocksOfDay(periods, date).map(toCourse),
       exams: exams.get(date) ?? [],
-      events: agenda.filter((e) => e.type === "appointment" && e.date === date),
+      events: agenda.filter((e) => e.type === "appointment" && coversDate(e, date)),
     };
   });
   // Modules offered for a new exam: those with courses in the period first

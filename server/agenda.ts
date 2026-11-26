@@ -25,6 +25,7 @@ tags:
 
 Rendez-vous et examens ajoutés depuis le Cockpit (espace Aujourd'hui, vue Calendrier).
 Tu peux aussi ajouter une ligne à la main : date \`AAAA-MM-JJ\`, heures \`HH:MM\` (vides = toute la journée), type \`rdv\` ou \`examen\`, module facultatif (\`M295\`).
+Sur plusieurs jours : le dernier jour dans « Fin » (\`AAAA-MM-JJ\`, ou \`AAAA-MM-JJ HH:MM\` avec une heure de fin).
 
 ${HEADER}
 ${SEPARATOR}
@@ -45,6 +46,19 @@ const withComputed = (row: AgendaRow): AgendaEvent => ({
 
 const byDateTime = (a: AgendaRow, b: AgendaRow) => (a.date + a.start).localeCompare(b.date + b.start);
 
+/** Last day of an event (the date itself for a one-day event). */
+export const lastDay = (row: Pick<AgendaRow, "date" | "endDate">): string => row.endDate || row.date;
+/** Does the event take place on this day? */
+export const coversDate = (row: Pick<AgendaRow, "date" | "endDate">, date: string): boolean => row.date <= date && date <= lastDay(row);
+
+/** "Fin" cell: "HH:MM" (same day), "AAAA-MM-JJ" or "AAAA-MM-JJ HH:MM" (another day). Other texts are kept as an end time. */
+export function parseEndCell(cell: string, date: string): { endDate: string; end: string } {
+  const match = /^(\d{4}-\d{2}-\d{2})(?:\s+(\d{2}:\d{2}))?$/.exec(cell);
+  if (!match) return { endDate: "", end: cell };
+  return { endDate: match[1] === date ? "" : match[1], end: match[2] ?? "" };
+}
+const endCell = (row: AgendaRow): string => (row.endDate ? `${row.endDate}${row.end ? ` ${row.end}` : ""}` : row.end);
+
 /** Rows of the agenda table (other lines of the note are ignored). Pure: used by tests. */
 export function parseAgenda(text: string): AgendaEvent[] {
   const events: AgendaEvent[] = [];
@@ -58,7 +72,7 @@ export function parseAgenda(text: string): AgendaEvent[] {
       withComputed({
         date: cells[0],
         start: cells[1] ?? "",
-        end: cells[2] ?? "",
+        ...parseEndCell(cells[2] ?? "", cells[0]),
         type: /exam/i.test(cells[3]) ? "exam" : "appointment",
         title: cells[4] ?? "",
         place: cells[5] ?? "",
@@ -79,7 +93,7 @@ export function renderAgenda(currentText: string | null, rows: AgendaRow[]): str
   while (end < lines.length && lines[end].trim().startsWith("|")) end++;
   const body = [...rows]
     .sort(byDateTime)
-    .map((r) => `| ${r.date} | ${r.start} | ${r.end} | ${TYPE_IN_FILE[r.type]} | ${r.title} | ${r.place} | ${r.module} | ${r.note} |`);
+    .map((r) => `| ${r.date} | ${r.start} | ${endCell(r)} | ${TYPE_IN_FILE[r.type]} | ${r.title} | ${r.place} | ${r.module} | ${r.note} |`);
   return [...lines.slice(0, start), HEADER, SEPARATOR, ...body, ...lines.slice(end)].join("\n");
 }
 
@@ -96,10 +110,13 @@ const clean = (value: unknown, max: number) =>
 
 /** Cleans received fields: no "|" nor line break (they would break the table), bounded lengths. */
 export function normalizeRow(raw: Record<string, unknown>): AgendaRow {
+  const date = clean(raw.date, 10);
+  const endDate = clean(raw.endDate, 10);
   return {
-    date: clean(raw.date, 10),
+    date,
     start: clean(raw.start, 5),
     end: clean(raw.end, 5),
+    endDate: endDate === date ? "" : endDate,
     type: raw.type === "exam" ? "exam" : "appointment",
     title: clean(raw.title, 80),
     place: clean(raw.place, 60),
@@ -113,7 +130,13 @@ export function validateRow(row: AgendaRow): string | null {
   if (!isIsoDate(row.date)) return "Date invalide (format AAAA-MM-JJ).";
   if (row.start && !/^\d{2}:\d{2}$/.test(row.start)) return "Heure de début invalide (HH:MM).";
   if (row.end && !/^\d{2}:\d{2}$/.test(row.end)) return "Heure de fin invalide (HH:MM).";
-  if (row.start && row.end && row.end <= row.start) return "La fin doit être après le début.";
+  if (row.endDate) {
+    if (!isIsoDate(row.endDate)) return "Date de fin invalide (format AAAA-MM-JJ).";
+    if (row.endDate < row.date) return "Le dernier jour doit être après le premier.";
+    if (row.type === "exam") return "Un examen tient sur un seul jour.";
+    if (row.start && !row.end) return "Sur plusieurs jours, il faut aussi l'heure de fin (ou aucune heure).";
+    if (row.end && !row.start) return "Sur plusieurs jours, il faut aussi l'heure de début (ou aucune heure).";
+  } else if (row.start && row.end && row.end <= row.start) return "La fin doit être après le début.";
   if (!row.title) return "Il faut un titre.";
   if (row.module && !/^M\d{3}$/.test(row.module)) return "Module invalide (ex. M295).";
   return null;

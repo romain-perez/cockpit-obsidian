@@ -70,7 +70,7 @@ Variables d'environnement : `COCKPIT_CONFIG` (autre fichier de configuration), `
   La vue Stats en tire une **note CFC provisoire** selon l'ordonnance (modules d'école 80 % et cours interentreprises 20 % arrondis à la demi-note, maths + anglais par semestre, culture générale dispensée ou non) et la note nécessaire au TPI : réglages dans `school.cfc`.
 - **Projets** : une fiche par projet dans `vault.projectsFolder`, avec les propriétés `espace: projets`, `dossier: ~/code/mon-projet`, `prochaine-etape`, `statut`, `kb: "[[Note]]"`, `depot: https://…`.
 - **Journal** : une note `AAAA-MM-JJ.md` par jour dans `vault.journalFolder`, sections `## Sujet` avec puces `- **Demande** : …` et `- **Prochaine étape** : …`.
-- **Agenda** : créé au premier ajout (`vault.agendaFile`), un tableau éditable à la main.
+- **Agenda** : créé au premier ajout (`vault.agendaFile`), un tableau éditable à la main. Un rendez-vous sur plusieurs jours a son dernier jour dans la colonne « Fin » (`AAAA-MM-JJ`, ou `AAAA-MM-JJ HH:MM` avec une heure de fin).
 
 ## Synchro Google Agenda (facultatif)
 

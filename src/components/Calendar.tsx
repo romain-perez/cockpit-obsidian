@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from
 import type { AgendaEvent, AgendaEventType, CalendarData, CalendarDay } from "../../shared/types.ts";
 import { forcedDate, post } from "../api.ts";
 import { useConfig } from "../config.tsx";
-import { MONTHS, parseDate, toIsoDate, weekdayName } from "../utils.ts";
+import { addDaysIso, MONTHS, parseDate, periodLabel, toIsoDate, weekdayName } from "../utils.ts";
 import { GooglePanel } from "./Google.tsx";
 import { Icon } from "./Icon.tsx";
 
@@ -25,6 +25,7 @@ interface EventForm {
   date: string;
   start: string;
   end: string;
+  endDate: string; // "" = one day
   place: string;
   module: string;
   note: string;
@@ -35,6 +36,7 @@ const emptyForm = (date: string): EventForm => ({
   date,
   start: "",
   end: "",
+  endDate: "",
   place: "",
   module: "",
   note: "",
@@ -54,6 +56,7 @@ export function CalendarView({ onChange }: { onChange?: () => void }) {
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null); // null: new event
+  const multiDay = form.type === "appointment" && form.endDate !== "";
 
   const start = gridStart(cursor.year, cursor.month);
   const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + GRID_DAYS - 1);
@@ -92,9 +95,9 @@ export function CalendarView({ onChange }: { onChange?: () => void }) {
     setMessage(null);
   };
   const startEditing = (event: AgendaEvent) => {
-    const { date, start, end, type, title, place, module, note } = event;
+    const { date, start, end, endDate, type, title, place, module, note } = event;
     setEditingId(event.id);
-    setForm({ date, start, end, type, title, place, module, note });
+    setForm({ date, start, end, endDate, type, title, place, module, note });
     setAdding(true);
     setMessage(null);
   };
@@ -105,7 +108,8 @@ export function CalendarView({ onChange }: { onChange?: () => void }) {
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    const response = editingId ? await post("/api/agenda/update", { id: editingId, ...form }) : await post("/api/agenda", form);
+    const sent = { ...form, endDate: form.type === "exam" ? "" : form.endDate }; // an exam takes one day
+    const response = editingId ? await post("/api/agenda/update", { id: editingId, ...sent }) : await post("/api/agenda", sent);
     if (response.ok) {
       setMessage({ ok: true, text: editingId ? "Modifié dans Obsidian (note Agenda)." : "Ajouté dans Obsidian (note Agenda)." });
       setForm(emptyForm(form.date));
@@ -160,7 +164,13 @@ export function CalendarView({ onChange }: { onChange?: () => void }) {
             const d = parseDate(date);
             const items = [
               ...(day?.exams ?? []).map((x) => ({ key: `e-${x.title}`, kind: "exam", text: x.title, color: x.color, time: x.start })),
-              ...(day?.events ?? []).map((x) => ({ key: `r-${x.id}`, kind: "appointment", text: x.title, color: x.color, time: x.start })),
+              ...(day?.events ?? []).map((x) => ({
+                key: `r-${x.id}`,
+                kind: "appointment",
+                text: x.title,
+                color: x.color,
+                time: x.date === date ? x.start : "", // over several days: the time only on the first day
+              })),
               ...(day?.courses ?? []).map((x) => ({
                 key: `c-${x.code}-${x.start}`,
                 kind: "course",
@@ -259,14 +269,40 @@ export function CalendarView({ onChange }: { onChange?: () => void }) {
                 />
               </label>
               <label>
-                Début
+                {multiDay ? "Début (1er jour)" : "Début"}
                 <input id="agenda-start" type="time" value={form.start} onChange={(e) => setForm({ ...form, start: e.target.value })} />
               </label>
               <label>
-                Fin
+                {multiDay ? "Fin (dernier jour)" : "Fin"}
                 <input id="agenda-end" type="time" value={form.end} onChange={(e) => setForm({ ...form, end: e.target.value })} />
               </label>
             </div>
+            {form.type === "appointment" && (
+              <div className="row multi-day">
+                <label className="check">
+                  <input
+                    id="agenda-multi-day"
+                    type="checkbox"
+                    checked={multiDay}
+                    onChange={(e) => setForm({ ...form, endDate: e.target.checked ? addDaysIso(form.date, 1) : "" })}
+                  />
+                  Plusieurs jours
+                </label>
+                {multiDay && (
+                  <label>
+                    Jusqu'au
+                    <input
+                      id="agenda-end-date"
+                      type="date"
+                      required
+                      min={form.date}
+                      value={form.endDate}
+                      onChange={(e) => setForm({ ...form, endDate: e.target.value })}
+                    />
+                  </label>
+                )}
+              </div>
+            )}
             {form.type === "exam" && (
               <label>
                 Module
@@ -337,10 +373,12 @@ export function CalendarView({ onChange }: { onChange?: () => void }) {
                 ))}
                 {selectedDay.events.map((x) => (
                   <li key={x.id} style={colorVariable(x.color)}>
-                    <span className="mono time">{x.start ? `${x.start}${x.end ? `–${x.end}` : ""}` : "journée"}</span>
+                    <span className="mono time">{eventTime(x, selected)}</span>
                     <div>
                       <b>{x.title}</b>
-                      <small>{[x.place, x.note].filter(Boolean).join(" · ") || "rendez-vous"}</small>
+                      <small>
+                        {[x.endDate && periodLabel(x.date, x.endDate), x.place, x.note].filter(Boolean).join(" · ") || "rendez-vous"}
+                      </small>
                     </div>
                     <EventActions event={x} onEdit={startEditing} onRemove={remove} />
                   </li>
@@ -378,6 +416,15 @@ export function CalendarView({ onChange }: { onChange?: () => void }) {
       </aside>
     </section>
   );
+}
+
+/** Time shown for an appointment on a day: over several days, the start on the first day and the end on the last. */
+function eventTime(event: AgendaEvent, date: string): string {
+  if (!event.start) return "journée";
+  if (!event.endDate) return `${event.start}${event.end ? `–${event.end}` : ""}`;
+  if (date === event.date) return `dès ${event.start}`;
+  if (date === event.endDate) return `→ ${event.end}`;
+  return "journée";
 }
 
 /** Edit and remove buttons of an agenda row. */
