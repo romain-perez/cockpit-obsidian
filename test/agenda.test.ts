@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { after, before, test } from "node:test";
 import {
   addEvent,
+  coversDate,
   HEADER,
   normalizeRow,
   parseAgenda,
@@ -28,6 +29,7 @@ const row = (fields: Partial<AgendaRow> = {}): AgendaRow => ({
   date: "2026-11-20",
   start: "14:00",
   end: "",
+  endDate: "",
   type: "appointment",
   title: "Dentiste",
   place: "Fribourg",
@@ -40,6 +42,48 @@ test("row ids never change (they are stored in the phone sync state)", () => {
   // Value produced by the first version of the Cockpit for this row
   assert.equal(rowId(row()), "g3jbni");
   assert.notEqual(rowId(row({ type: "exam" })), rowId(row()));
+  // The last day is not part of the id: existing rows keep theirs, extending an event keeps it too
+  assert.equal(rowId(row({ endDate: "2026-11-22", end: "10:00" })), "g3jbni");
+});
+
+test("several days: the last day is written in « Fin », old rows are read as before", () => {
+  const wholeDays = row({ date: "2026-12-21", start: "", endDate: "2026-12-27", title: "Vacances", place: "" });
+  const withTimes = row({ date: "2026-12-05", start: "14:00", end: "10:00", endDate: "2026-12-07", title: "Week-end", place: "" });
+  const text = renderAgenda(null, [wholeDays, withTimes, row()]);
+  assert.match(text, /\| 2026-12-21 \|  \| 2026-12-27 \| rdv \| Vacances \|/);
+  assert.match(text, /\| 2026-12-05 \| 14:00 \| 2026-12-07 10:00 \| rdv \| Week-end \|/);
+  assert.match(text, /\| 2026-11-20 \| 14:00 \|  \| rdv \| Dentiste \|/);
+  const parsed = parseAgenda(text);
+  assert.deepEqual(
+    parsed.map((e) => [e.title, e.end, e.endDate]),
+    [
+      ["Dentiste", "", ""],
+      ["Week-end", "10:00", "2026-12-07"],
+      ["Vacances", "", "2026-12-27"],
+    ],
+  );
+  // a hand-written end on the same day stays a one-day event
+  assert.equal(parseAgenda(`${HEADER}\n|---|\n| 2026-12-01 | 09:00 | 2026-12-01 11:00 | rdv | A |  |  |  |`)[0].endDate, "");
+  assert.ok(coversDate(wholeDays, "2026-12-21") && coversDate(wholeDays, "2026-12-24") && coversDate(wholeDays, "2026-12-27"));
+  assert.ok(!coversDate(wholeDays, "2026-12-20") && !coversDate(wholeDays, "2026-12-28"));
+  assert.ok(coversDate(row(), "2026-11-20") && !coversDate(row(), "2026-11-21"));
+});
+
+test("several days: validation (French messages)", () => {
+  assert.equal(normalizeRow({ date: "2026-12-01", endDate: "2026-12-01", title: "A" }).endDate, "");
+  assert.equal(validateRow(row({ start: "", endDate: "2026-11-25" })), null);
+  assert.equal(validateRow(row({ start: "14:00", end: "10:00", endDate: "2026-11-22" })), null);
+  assert.equal(validateRow(row({ endDate: "2026-11-19" })), "Le dernier jour doit être après le premier.");
+  assert.equal(validateRow(row({ endDate: "22.11.2026" })), "Date de fin invalide (format AAAA-MM-JJ).");
+  assert.equal(validateRow(row({ type: "exam", start: "", endDate: "2026-11-22" })), "Un examen tient sur un seul jour.");
+  assert.equal(
+    validateRow(row({ start: "14:00", end: "", endDate: "2026-11-22" })),
+    "Sur plusieurs jours, il faut aussi l'heure de fin (ou aucune heure).",
+  );
+  assert.equal(
+    validateRow(row({ start: "", end: "10:00", endDate: "2026-11-22" })),
+    "Sur plusieurs jours, il faut aussi l'heure de début (ou aucune heure).",
+  );
 });
 
 test("the file keeps its French format: types rdv / examen", () => {

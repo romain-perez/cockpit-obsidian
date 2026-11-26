@@ -33,6 +33,19 @@ export const shortWeekday = (isoDate: string) => SHORT_WEEKDAYS[parseDate(isoDat
 export const weekdayName = (date: Date) => WEEKDAYS[date.getDay()];
 export const dayOfMonth = (isoDate: string) => parseDate(isoDate).getDate();
 
+/** Date a number of days later (or earlier) */
+export const addDaysIso = (isoDate: string, days: number): string => {
+  const date = parseDate(isoDate);
+  return toIsoDate(new Date(date.getFullYear(), date.getMonth(), date.getDate() + days));
+};
+
+/** "du 21 au 27 décembre", "du 30 novembre au 2 décembre" */
+export function periodLabel(from: string, to: string): string {
+  const [a, b] = [parseDate(from), parseDate(to)];
+  const sameMonth = a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear();
+  return `du ${a.getDate()}${sameMonth ? "" : ` ${MONTHS[a.getMonth()]}`} au ${b.getDate()} ${MONTHS[b.getMonth()]}`;
+}
+
 /** "mardi 17 novembre" */
 export const longDate = (date: Date): string => `${WEEKDAYS[date.getDay()]} ${date.getDate()} ${MONTHS[date.getMonth()]}`;
 

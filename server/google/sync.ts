@@ -6,7 +6,7 @@ import { config } from "../config.ts";
 import { addDays, oneHourLater, today } from "../core/dates.ts";
 import { sha1Hex } from "../core/hash.ts";
 import { updateJson, writeJsonAtomic } from "../core/safe-write.ts";
-import { readAgenda, removeEvent, upsertEvent } from "../agenda.ts";
+import { lastDay, readAgenda, removeEvent, upsertEvent } from "../agenda.ts";
 import { readModules } from "../school/modules.ts";
 import { blocksOfDay, readPeriods } from "../school/schedule.ts";
 import { getAccessToken } from "./auth.ts";
@@ -20,7 +20,7 @@ import {
   type CalendarKey,
   type PhoneEvents,
 } from "./files.ts";
-import type { GoogleStatus } from "../../shared/types.ts";
+import type { AgendaEvent, GoogleStatus } from "../../shared/types.ts";
 
 const API = "https://www.googleapis.com/calendar/v3";
 const COCKPIT_MARK = { private: { cockpit: "1" } };
@@ -121,17 +121,20 @@ function wantedCourses(from: string, to: string): WantedEvent[] {
   );
 }
 
+/** Agenda row → Google event (over several days: up to its last day). Pure: used by tests. */
+export const agendaToWanted = (e: AgendaEvent): WantedEvent => ({
+  id: eventId(`agenda|${e.id}`),
+  summary: e.type === "exam" ? `📝 ${e.title}${e.module ? ` · ${e.module}` : ""}` : e.title,
+  location: e.place || undefined,
+  description: e.note || undefined,
+  start: e.start ? at(e.date, e.start) : { date: e.date },
+  end: e.start ? at(lastDay(e), e.end || oneHourLater(e.start)) : { date: addDays(lastDay(e), 1) }, // Google: whole-day end is exclusive
+});
+
 function wantedPersonal(from: string, phoneRows: Set<string>): WantedEvent[] {
   const events: WantedEvent[] = readAgenda()
-    .filter((e) => e.date >= from && !phoneRows.has(e.id)) // rows from the phone stay owned by the phone
-    .map((e) => ({
-      id: eventId(`agenda|${e.id}`),
-      summary: e.type === "exam" ? `📝 ${e.title}${e.module ? ` · ${e.module}` : ""}` : e.title,
-      location: e.place || undefined,
-      description: e.note || undefined,
-      start: e.start ? at(e.date, e.start) : { date: e.date },
-      end: e.start ? at(e.date, e.end || oneHourLater(e.start)) : { date: addDays(e.date, 1) },
-    }));
+    .filter((e) => lastDay(e) >= from && !phoneRows.has(e.id)) // rows from the phone stay owned by the phone
+    .map(agendaToWanted);
   const periods = readPeriods();
   for (const module of readModules())
     for (const exam of module.exams) {
@@ -216,12 +219,25 @@ export function phoneEventToRow(event: any): Record<string, string> | null {
   const date = start.slice(0, 10);
   const wholeDay = !event.start?.dateTime;
   const end: string | undefined = event.end?.dateTime;
+  let endDate = "";
+  let endClock = "";
+  if (wholeDay) {
+    // whole-day end is exclusive: the day before is the last day
+    const last = event.end?.date ? addDays(event.end.date, -1) : date;
+    if (last > date) endDate = last;
+  } else if (end) {
+    const endDay = end.slice(0, 10);
+    const clock = end.slice(11, 16);
+    if (endDay === date) endClock = clock;
+    else if (!(endDay === addDays(date, 1) && clock === "00:00")) [endDate, endClock] = [endDay, clock]; // ending at midnight: same day
+  }
   // Exam: "📝" first, the word "examen", or "Test 3" (a number after "test")
   const isExam = /^📝|examen|\btest\s*\d/i.test(event.summary);
   return {
     date,
     start: wholeDay ? "" : start.slice(11, 16),
-    end: !wholeDay && end && end.slice(0, 10) === date ? end.slice(11, 16) : "",
+    end: endClock,
+    endDate,
     type: isExam ? "exam" : "appointment",
     title: String(event.summary).replace(/^📝\s*/, ""),
     place: event.location ?? "",
@@ -279,7 +295,7 @@ async function importFromPhone(calendar: string, from: string): Promise<{ added:
     // deleted on the phone (unless simply too old to be listed)
     if (phone.has(id)) continue;
     const row = rows.get(link.row);
-    if (row && row.date >= from) {
+    if (row && lastDay(row) >= from) {
       await removeEvent(link.row);
       tally.removed++;
     }

@@ -2073,6 +2073,23 @@ code {
   grid-template-columns: 1.4fr 1fr 1fr;
   gap: 8px;
 }
+.cal-form .row.multi-day {
+  grid-template-columns: auto 1fr;
+  align-items: end;
+}
+.cal-form label.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 0;
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+}
+.cal-form label.check input {
+  width: auto;
+  accent-color: var(--peach);
+}
 .cal-form .row.buttons {
   grid-template-columns: auto auto;
   justify-content: end;
