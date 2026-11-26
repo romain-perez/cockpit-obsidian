@@ -4,8 +4,9 @@ Les versions suivent [SemVer](https://semver.org/lang/fr/) : `Y` pour une nouvel
 
 ## [Non publié]
 
-- Ajouté : rendez-vous sur plusieurs jours : case « Plusieurs jours » et champ « Jusqu'au » dans le calendrier, affichage sur chaque jour de la période (« du 21 au 27 décembre »), dernier jour écrit dans la colonne « Fin » de l'agenda (les lignes existantes ne changent pas), synchro Google dans les deux sens. Les examens restent sur un seul jour.
+## [1.4.0] - 2026-11-26
 
+- Ajouté : rendez-vous sur plusieurs jours : case « Plusieurs jours » et champ « Jusqu'au » dans le calendrier, affichage sur chaque jour de la période (« du 21 au 27 décembre »), dernier jour écrit dans la colonne « Fin » de l'agenda (les lignes existantes ne changent pas), synchro Google dans les deux sens. Les examens restent sur un seul jour.
 - Modifié : « À faire » : le titre des tâches masquées n'affiche plus « (elles reviennent si elles changent) ».
 
 ## [1.3.1] - 2026-11-20
